@@ -3,18 +3,20 @@ package pnl;
 public class pnl {
 
 	public static void main(String[] args) {
-		int n = 10;
+		int n = 20;
 		X x = new X(n);
 		for(int i=0;i<n;i++) {
 			x.x[i] = (double)i+1;
 		}
-		x.Xm();
-		System.out.println(x.xm);
+		x.calc();
+		System.out.println(x.toPrint());
+		
+		X x2 = new X(n,"x2");
 		for(int i=0;i<n;i++) {
-			System.out.println(x.x[i]);
+			x2.x[i] = x.x[i]*0.1;
 		}
-		x.sum_square();
-		System.out.println(x.sx2);
+		x2.calc();
+		System.out.println(x2.toPrint());
 
 	}
 
