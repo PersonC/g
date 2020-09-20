@@ -26,13 +26,27 @@ public class CL_Y {
 		}
 		this.sy2 = s;
 	}
+	
 	public void maxmin () {
 		ymin=y[0]; ymax=y[0];
 		for(int i=1;i<n;i++) {
 			if (y[i]<ymin) ymin=y[i];
 			if (y[i]>ymax) ymax=y[i];
 		}
-		
+	}
+	
+	public void calc() {
+		ym();
+		sum_square();
+		maxmin();
+	}
+	
+	public String toPrint() {
+		return "n="+n + 
+			   ", min=" + ymin + 
+			   ", max=" + ymax +
+			   ", ym=" + ym +
+			   ", sum(y**2)=" + sy2; 
 	}
 
 }
