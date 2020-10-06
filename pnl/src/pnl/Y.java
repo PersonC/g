@@ -1,30 +1,26 @@
 package pnl;
 
-public class CL_Y {
+public class Y {
+	
 	public int n;
 	public double ym, sy2, ymin, ymax;
 	public double[] y;
 	
-	public CL_Y(int n) {
+	public Y(int n) {
 		this.n = n;
 		this.y = new double[n];
 	}
 	
 	public void ym() {
-		double s = y[0];
-		for (int i=1;i<n;i++) {
-			double c = (double) i / (i+1);
-			s = c * (s + y[i] / i);
-		}
-		this.ym = s;
+		double s = 0;
+		for (int i=0; i<n; i++) { s = s + y[i]; }
+		this.ym = s / (double) n;
 	}
 	
 	public void sum_square() {
-		double s = 0;
-		for(int i=0;i<n;i++) {
-			s += y[i]*y[i];
-		}
-		this.sy2 = s;
+			double s = 0;
+			for(int i=0;i<n;i++) { s += y[i]*y[i]; }
+			this.sy2 = s;
 	}
 	
 	public void maxmin () {
@@ -36,17 +32,14 @@ public class CL_Y {
 	}
 	
 	public void calc() {
-		ym();
-		sum_square();
-		maxmin();
+		ym(); sum_square(); maxmin();
 	}
 	
 	public String toPrint() {
-		return "n="+n + 
-			   ", min=" + ymin + 
-			   ", max=" + ymax +
+		return "n=" + n + 
+			   ", ymin=" + ymin + 
+			   ", ymax=" + ymax +
 			   ", ym=" + ym +
 			   ", sum(y**2)=" + sy2; 
 	}
-
 }

@@ -1,56 +1,54 @@
 package pnl;
 
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
-
 public class X {
-	public double[] x;
-	public int n;
-	public String nameX;
-	public double xm, sx2, xmin, xmax;
+	public int n,m;
+	public double[] xm, xmin, xmax, sx2, yx;
+	public double[][] x; // [m][n]
 	
-	public X(int n) {
-		this.x = new double[n];
+	public X(int n, int m) {
 		this.n = n;
+		this.m = m;
+		this.xm = new double[m];
+		this.xmin = new double[m];
+		this.xmax = new double[m];
+		this.sx2 = new double[m];
+		this.yx = new double[m];
+		this.x = new double[m][n];
+	} 
+	
+	public void xm_j( int j ) {
+		double s =0.0;
+		for (int i=0; i<n; i++) { s = s + x[j][i]; }	
+		xm[j] = s/(double) n;
 	}
-	public X(int n, String name) {
-		this.x = new double[n];
-		this.n = n;
-		this.nameX = name;
-	}
-	public void Xm() {
-		double s = x[0];
-		for (int i=1;i<n;i++) {
-			double c = (double) i / (i+1);
-			s = c * (s + x[i] / i);
-		}
-		this.xm = s;
-	}
-	public void sum_square() {
+	
+	public void sum_square_j( int j ) {
 		double s = 0;
-		for(int i=0;i<n;i++) {
-			s += x[i]*x[i];
-		}
-		this.sx2 = s;
-	}
-	public void maxmin () {
-		xmin=x[0]; xmax=x[0];
-		for(int i=1;i<n;i++) {
-			if (x[i]<xmin) xmin=x[i];
-			if (x[i]>xmax) xmax=x[i];
-		}
-		
-	}
-	public void calc() {
-		Xm();
-		sum_square();
-		maxmin();
-	}
-	public String toPrint() {
-		return "n="+n + 
-			   ", min=" + xmin + 
-			   ", max=" + xmax +
-			   ", xm=" + xm +
-			   ", sum(x**2)=" + sx2; 
+		for(int i=0;i<n;i++) { s += x[j][i] * x[j][i]; }
+		this.sx2[j] = s;
 	}
 
-}
+	public void maxmin ( int j) {
+		xmin[j]=x[j][0]; xmax[j]=x[j][0];
+		for(int i=1;i<n;i++) {
+			if (x[j][i]<xmin[j]) xmin[j]=x[j][i];
+			if (x[j][i]>xmax[j]) xmax[j]=x[j][i];
+		}
+	}
+	
+	public void calc() {
+		for(int j=0; j<m; j++) {
+			xm_j(j);
+			sum_square_j(j);
+			maxmin(j);
+		}
+	}
+	
+	public String toPrint(int j) {
+		return "j="+j + 
+			   ", min=" + xmin[j] + 
+			   ", max=" + xmax[j] +
+			   ", xm=" + xm[j] +
+			   ", sum(x**2)=" + sx2[j]; 
+	}
+}  // end class
