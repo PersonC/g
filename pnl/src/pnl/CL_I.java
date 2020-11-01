@@ -3,6 +3,7 @@ package pnl;
 public class CL_I {
 	public int n, na, nb, nc;
 	public int[] ia, ib, ic;
+	
 	public CL_I(int n) {
 		this.n = n;
 	}
@@ -49,31 +50,31 @@ public class CL_I {
 		}
 	}
 	
-	public void set_a(Y y, X x, Y y0, X x0) {
+	public void set_a(Xy xy, Xy x0) {
 		for(int i=0; i<na; i++) {
-			y.y[i] = y0.y[ia[i]];
+			xy.y[i] = x0.y[ia[i]];
 			for(int j=0; j<x0.m; j++) {
-				x.x[j][i] = x0.x[j][ia[i]];
+				xy.x[j][i] = x0.x[j][ia[i]];
 			}
 		}
 	}
 
-	public void set_b(Y y, X x, Y y0, X x0) {
+	public void set_b(Xy xy, Xy x0) {
 		if (nb <= 0) return;
 		for(int i=0; i<nb; i++) {
-			y.y[i] = y0.y[ib[i]];
+			xy.y[i] = x0.y[ib[i]];
 			for(int j=0; j<x0.m; j++) {
-				x.x[j][i] = x0.x[j][ib[i]];
+				xy.x[j][i] = x0.x[j][ib[i]];
 			}
 		}
 	}
 
-	public void set_c(Y y, X x, Y y0, X x0) {
+	public void set_c(Xy xy, Xy x0) {
 		if (nc <= 0) return;
 		for(int i=0; i<nc; i++) {
-			y.y[i] = y0.y[ic[i]];
+			xy.y[i] = x0.y[ic[i]];
 			for(int j=0; j<x0.m; j++) {
-				x.x[j][i] = x0.x[j][ic[i]];
+				xy.x[j][i] = x0.x[j][ic[i]];
 			}
 		}
 	}

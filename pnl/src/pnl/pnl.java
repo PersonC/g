@@ -1,26 +1,57 @@
 package pnl;
+import java.lang.instrument.Instrumentation;
 
 public class pnl {
+	
+//	static final double EPS = 1e-15;
+    private static final long MEGABYTE = 1024L * 1024L;
+    private static final long KILOBYTE = 1024L;
 
+    public static long bytesToMegabytes(long bytes) {
+        return bytes / MEGABYTE;
+    }
+
+    public static long bytesToKilobytes(long bytes) {
+        return bytes / KILOBYTE;
+    }
+    
+    public static void printBytes(Runtime runtime) {
+        // Run the garbage collector
+        runtime.gc();
+        // Calculate the used memory
+        long memory = runtime.totalMemory() - runtime.freeMemory();
+        if (memory < MEGABYTE) {
+            System.out.println("Used memory is bytes: " + memory + ". " + "Used memory is kilobytes: "
+                + bytesToKilobytes(memory));
+        } else {
+            System.out.println("Used memory is bytes: " + memory + ". " + "Used memory is megabytes: "
+                    + bytesToMegabytes(memory));
+        }
+    }
+    
 	public static void main(String[] args) {
-		//
+		// Get the Java runtime
+        Runtime runtime = Runtime.getRuntime();
+        printBytes(runtime);
+        
 		int n = 20;
 		int m = 4;
 		int f = 3;
 		//
-		Y y0 = new Y(n);
-		X x0 = new X(n,m);
+		Xy x0 = new Xy(n,m);
 		
 		for(int i=0; i<n; i++) {
 			x0.x[0][i] = 1.0;
 			x0.x[1][i] = (double)i+1;
 			x0.x[2][i] = (double)i-1;
 			x0.x[3][i] = (double)i * 0.1;
-			y0.y[i] = 10.0 + 2.0 * x0.x[1][i] + 3.0 * x0.x[2][i];
+			x0.y[i] = 10.0 + 2.0 * x0.x[1][i] + 3.0 * x0.x[2][i];
 		}
-		y0.calc();
 		x0.calc();
-		System.out.println(y0.toPrint());
+
+        printBytes(runtime);
+		
+		System.out.println(x0.toPrint());
 		System.out.println(x0.toPrint(0));
 		System.out.println(x0.toPrint(1));
 		System.out.println(x0.toPrint(2));
@@ -29,29 +60,24 @@ public class pnl {
 		int na=12, nb=6, nc=2;
 		CL_I ind = new CL_I(n, na, nb, nc);
 		ind.set_indices();
+		x0.set(ind);
 		//
-		Y ya = new Y(na);
-		X xa = new X(na,m);
+		Xy xa = new Xy(na,m);
+		Xy xb = new Xy(nb,m);
+		Xy xc = new Xy(nc,m);
 		//
-		Y yb = new Y(nb);
-		Y yc = new Y(nc);
-		X xb = new X(nb,m);
-		X xc = new X(nc,m);
-		ind.set_a(ya, xa, y0, x0);
-		ya.calc();
+		ind.set_a(xa, x0);
 		xa.calc();
-		ind.set_b(yb, xb, y0, x0);
-		yb.calc();
+		ind.set_b(xb, x0);
 		xb.calc();
-		ind.set_c(yc, xc, y0, x0);
-		yc.calc();
+		ind.set_c(xc, x0);
 		xc.calc();
         //
 		Z z = new Z(n,m,f);
-		z.set_zero_step(y0, x0);
+		z.set_zero_step(x0);
 		z.toPrint("z");
 //
-		Z za = new Z(na,m,f);
+/*		Z za = new Z(na,m,f);
 		za.set_zero_step(ya, xa);
 		za.toPrint("za");
 		//
@@ -61,7 +87,17 @@ public class pnl {
 		//
 		Z zc = new Z(nc,m,f);
 		zc.set_zero_step(yc, xc);
-		zc.toPrint("zc");
+		zc.toPrint("zc");*/
+		//
+		z.set_next_step(x0);
+		z.toPrintCr();
+		z.toPrint("z1");
+
+		z.set_next_step(x0);
+		z.toPrintCr();
+		z.toPrint("z1");
+
+        printBytes(runtime);
 		
 	}
 }
