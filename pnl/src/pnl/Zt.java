@@ -1,9 +1,10 @@
 package pnl;
 
 public class Zt {
-	private static final double EPS = 1e-20;
+	protected static final double EPS = 1e-20;
 	public int n,m,f;
 	public int typeABC;
+	public Xy xy;
 	//
 	public double[]   zm, zmin, zmax, sz2, yz;
 	public double[][] z;
@@ -17,10 +18,11 @@ public class Zt {
 	double[] a2;
 	int[]    jx, kz;
 	
-	public Zt(int n, int m, int f, int typeABC) {
+	public Zt(int n, int m, int f, int typeABC, Xy x0) {
 		this.n = n;
 		this.m = m;
 		this.f = f;
+		this.xy = x0;
 		this.typeABC = typeABC;
 		this.zm   = new double[f];
 		this.zmin = new double[f];
@@ -38,12 +40,12 @@ public class Zt {
 		this.kz   = new int[f];
 	}
 	//==========
-	public void set_zero_step(Xy xy) {
+	public void set_zero_step() {
 		int f1 = 0;
 		for (int j=0; j<m; j++) {
 			if (f0 < f) {
 				double cr = 0, s = 0, zz = 0;
-				a[j][f0] = xy.ym / xy.xm[j];
+				a[j][f0] = xy.ym[0] / xy.xm[j][0];
 				for (int i=0; i<n; i++) {
 					zz = a[j][f0]*xy.x[j][i]; z[f0][i] =  zz;
 					s = xy.y[i]- zz;          cr += s*s;
@@ -55,7 +57,7 @@ public class Zt {
 			} else {
 				double a_temp = 0;
 				double cr = 0, s = 0;
-				a_temp = xy.ym / xy.xm[j];
+				a_temp = xy.ym[0] / xy.xm[j][0];
 				for (int i=0; i<n; i++) { s = xy.y[i]- a_temp*xy.x[j][i]; cr += s*s; }
 				if (cr < r[ir[0]]) {
 					f1 = ir[0]; for (int l=0; l<m; l++) { a[l][f1] = 0; }
@@ -66,7 +68,7 @@ public class Zt {
 			}
 		}
 		calc();
-		f_zx(xy);
+		f_zx();
 	}
     //=========
 	public void sort_r() {
@@ -112,7 +114,7 @@ public class Zt {
 		}
 	}
 
-	public void f_zx(Xy xy) {
+	public void f_zx() {
 		for (int j=0; j<f0; j++) {
 			yz[j] = 0.0;
 			for (int i=0; i<n; i++) {
@@ -148,13 +150,13 @@ public class Zt {
 	}
 	//===============
 	//================
-	public boolean model(Xy xy, int j, int k) { // расчет модели
+	public boolean model(int j, int k) { // расчет модели
 		double sxz = 0, D = 0, ax, az;
 		for(int i=0; i<n; i++) { sxz += xy.x[j][i] * z[k][i]; }
-		D = xy.sx2[j] * sz2[k] - sxz * sxz;
+		D = xy.sx2[j][0] * sz2[k] - sxz * sxz;
 		if (Math.abs(D) < EPS) return(false);
-		ax = (xy.yx [j] * sz2[k] - sxz*yz  [k])/D;
-		az = (xy.sx2[j] * yz [k] - sxz*xy.yx[j])/D;
+		ax = (xy.yx [j][0] * sz2[k] - sxz * yz   [k])    / D;
+		az = (xy.sx2[j][0] * yz [k] - sxz * xy.yx[j][0]) / D;
 		double cr = 0, dd;
 		for (int i=0; i<n; i++) {
 			dd = xy.y[i] - ax * xy.x[j][i] - az * z[k][i]; cr += dd * dd;
@@ -175,7 +177,7 @@ public class Zt {
 		return(true);
 	}
 	//
-	public void build(Xy xy) {
+	public void build() {
 		double[][] b = new double[m][f2];
 		for (int j=0; j<m; j++) {
 			for(int k=0; k<f2; k++) {
@@ -191,7 +193,7 @@ public class Zt {
 				a[jx[k]][l] += a1[k];
 				r[f0] = crm[k];
 				ir[f0] = f0;
-				fillz(f0,xy);
+				fillz(f0);
 				f0 += 1;
 				if (f0 == f) sort_r();
 			} else {
@@ -203,26 +205,18 @@ public class Zt {
 					a[jx[k]][l] += a1[k];
 					r[l] = crm[k];
 					ir[0] = l;
-					fillz(l,xy);
+					fillz(l);
 					sort_r();
 				}
 			} // end if
 		} // next k
 	}
 	//
-	public void fillz(int f, Xy xy) {
+	public void fillz(int f) {
 		for (int i=0; i<n; i++) {
 			z[f][i] = 0; for(int j=0; j<m; j++) { z[f][i] += a[j][f]*xy.x[j][i]; }
 		}
 		zm_j(f); sum_square_j(f); maxmin(f);
 	}
-
-
-
-	
-
-
-
-
 
 }

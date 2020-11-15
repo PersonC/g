@@ -39,6 +39,10 @@ public class pnl {
 		//
 		Xy x0 = new Xy(n,m);
 		x0.test_data();
+		int na=12, nb=6, nc=2;
+		CL_I ind = new CL_I(n, na, nb, nc);
+		x0.set(ind);
+
 		x0.calc();
 
         printBytes(runtime);
@@ -49,25 +53,24 @@ public class pnl {
 		System.out.println(x0.toPrint(2));
 		System.out.println(x0.toPrint(3));
 		//
-		int na=12, nb=6, nc=2;
-		CL_I ind = new CL_I(n, na, nb, nc);
-		x0.set(ind);
-		//
 		Z z = new Z(x0,f);
-		z.z0.set_zero_step(x0);
+		z.z0.set_zero_step();
 		z.z0.toPrint("z");
 //
-		z.set_next_step(x0);
-		z.z0.toPrintCr();
-		z.z0.toPrint("z1");
+		if(z.set_next_step()) {
+			z.z0.toPrintCr();
+			z.z0.toPrint("z1");
+		} else {System.out.println("======== END ==========");}
 
-		z.set_next_step(x0);
-		z.z0.toPrintCr();
-		z.z0.toPrint("z1");
+		if(z.set_next_step()) {
+			z.z0.toPrintCr();
+			z.z0.toPrint("z1");
+		} else {System.out.println("======== END ==========");}
 //		
-		z.za.set_zero_step(x0);
+		z.za.set_zero_step();
 		z.za.toPrint("za");
-		
+		z.zb.set_zero_step();
+		z.zb.toPrint("zb");
 
         printBytes(runtime);
 		
