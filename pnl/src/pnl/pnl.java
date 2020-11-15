@@ -1,5 +1,4 @@
 package pnl;
-import java.lang.instrument.Instrumentation;
 
 public class pnl {
 	
@@ -39,14 +38,7 @@ public class pnl {
 		int f = 3;
 		//
 		Xy x0 = new Xy(n,m);
-		
-		for(int i=0; i<n; i++) {
-			x0.x[0][i] = 1.0;
-			x0.x[1][i] = (double)i+1;
-			x0.x[2][i] = (double)i-1;
-			x0.x[3][i] = (double)i * 0.1;
-			x0.y[i] = 10.0 + 2.0 * x0.x[1][i] + 3.0 * x0.x[2][i];
-		}
+		x0.test_data();
 		x0.calc();
 
         printBytes(runtime);
@@ -59,43 +51,23 @@ public class pnl {
 		//
 		int na=12, nb=6, nc=2;
 		CL_I ind = new CL_I(n, na, nb, nc);
-		ind.set_indices();
 		x0.set(ind);
 		//
-		Xy xa = new Xy(na,m);
-		Xy xb = new Xy(nb,m);
-		Xy xc = new Xy(nc,m);
-		//
-		ind.set_a(xa, x0);
-		xa.calc();
-		ind.set_b(xb, x0);
-		xb.calc();
-		ind.set_c(xc, x0);
-		xc.calc();
-        //
-		Z z = new Z(n,m,f);
-		z.set_zero_step(x0);
-		z.toPrint("z");
+		Z z = new Z(x0,f);
+		z.z0.set_zero_step(x0);
+		z.z0.toPrint("z");
 //
-/*		Z za = new Z(na,m,f);
-		za.set_zero_step(ya, xa);
-		za.toPrint("za");
-		//
-		Z zb = new Z(nb,m,f);
-		zb.set_zero_step(yb, xb);
-		zb.toPrint("zb");
-		//
-		Z zc = new Z(nc,m,f);
-		zc.set_zero_step(yc, xc);
-		zc.toPrint("zc");*/
-		//
 		z.set_next_step(x0);
-		z.toPrintCr();
-		z.toPrint("z1");
+		z.z0.toPrintCr();
+		z.z0.toPrint("z1");
 
 		z.set_next_step(x0);
-		z.toPrintCr();
-		z.toPrint("z1");
+		z.z0.toPrintCr();
+		z.z0.toPrint("z1");
+//		
+		z.za.set_zero_step(x0);
+		z.za.toPrint("za");
+		
 
         printBytes(runtime);
 		

@@ -102,5 +102,14 @@ public class Xy {
 			   ", ymax=" + ymax +
 			   ", ym=" + ym +
 			   ", sum(y**2)=" + sy2; 
-	}	
+	}
+	public void test_data() {
+		for(int i=0; i<n; i++) {
+			x[0][i] = 1.0;
+			x[1][i] = (double)i+1;
+			x[2][i] = (double)i-1;
+			x[3][i] = (double)i * 0.1;
+			y[i] = 10.0 + 2.0 * x[1][i] + 3.0 * x[2][i];
+		}
+	}
 }  // end class

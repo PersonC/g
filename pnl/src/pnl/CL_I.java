@@ -3,18 +3,23 @@ package pnl;
 public class CL_I {
 	public int n, na, nb, nc;
 	public int[] ia, ib, ic;
+	public int type_ABC = 0; 
 	
-	public CL_I(int n) {
-		this.n = n;
-	}
-
 	public CL_I(int n, int na, int nb, int nc) {
 		this.n = n;
 		set_abc(na,nb,nc);
+		set_indices();
+	}
+
+	public CL_I(int n, int na, int nb, int nc, int type_ABC) {
+		this.n = n;
+		this.type_ABC = type_ABC;
+		set_abc(na,nb,nc);
+		set_indices();
 	}
 	
 	public void set_abc(int na, int nb, int nc) {
-    // set samplings		
+    // set samplings linear		
 		this.nb = 0;
 		this.nc = 0;
 		if(na<=0 || na >= n) {
