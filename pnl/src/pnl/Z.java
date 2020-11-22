@@ -5,7 +5,7 @@ public class Z {
 	public Xy x0;
 
 	public int typeCR = 0;
-	public Zt z0;
+	public Zt  z0;
 	public ZtA za;
 	public ZtA zb;
 	
@@ -15,9 +15,9 @@ public class Z {
 		if (f<0) f = m;
 		this.f = f;
 		this.x0 = x0;
-		this.z0 = new Zt(n,m,f,0,x0);
-		this.za = new ZtA(na,m,f,1,x0);
-		this.zb = new ZtA(nb,m,f,2,x0);
+		this.z0 = new Zt (f,0,x0);
+		this.za = new ZtA(f,1,x0);
+		this.zb = new ZtA(f,2,x0);
 	}
 	
 	public boolean set_next_step() {
@@ -31,7 +31,7 @@ public class Z {
 		if (yes) z0.build();
 		return yes;
 	}
-// критерий регулярности
+    // критерий регулярности
 	public boolean set_next_step_CR1() {
 		boolean yes = false;
 		z0.f2 = 0;

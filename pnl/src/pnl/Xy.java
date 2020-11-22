@@ -1,6 +1,6 @@
 package pnl;
 
-public class Xy {
+public class Xy implements PrepareXYZ {
 	public int n,m;
 	public double[][] xm, xmin, xmax, sx2, yx;
 	public double[][] x; // [m][n]
@@ -30,135 +30,51 @@ public class Xy {
 	}
 	
 	public void xm_j( int j ) {
-		double s =0.0;
-		for (int i=0; i<n; i++) { s = s + x[j][i]; }	
-		xm[j][0] = s/(double) n;
-		//
-		int i1;
-		s = 0;
-		for (int i=0; i<id.na; i++ ) {
-			i1 = id.ia[i];
-			s += x[j][i1];
-		}
-		this.xm[j][1] = s / (double) id.na;
-		//
-		if( id.nb > 0 ) {
-			s = 0;
-			for (int i=0; i<id.nb; i++ ) {
-				i1 = id.ib[i];
-				s += x[j][i1];
-			}
-			this.xm[j][2] = s / (double) id.nb;
-		}
-		//
-		if( id.nc > 0 ) {
-			s = 0;
-			for (int i=0; i<id.nc; i++ ) {
-				i1 = id.ic[i];
-				s += x[j][i1];
-			}
-			this.xm[j][3] = s / (double) id.nc;
-		}
+		xm[j][0] = xmForj(x, j, n);
+		xm[j][1] = xmForj(x, j, id.na, id.ia);
+		if( id.nb > 0 ) { xm[j][2] = xmForj(x, j, id.nb, id.ib); }
+		if( id.nc > 0 ) { xm[j][3] = xmForj(x, j, id.nc, id.ic); }
+	}
+
+	public void ym( ) {
+		ym[0] = ym(y, n);
+		ym[1] = ym(y, id.na, id.ia);
+		if( id.nb > 0 ) { ym[2] = ym(y, id.nb, id.ib); }
+		if( id.nc > 0 ) { ym[3] = ym(y, id.nc, id.ic); }
 	}
 	
+	public void sum_square( ) {
+		sy2[0] = sum_square(y, n);
+		sy2[1] = sum_square(y, id.na, id.ia);
+		if( id.nb > 0 ) { sy2[2] = sum_square(y, id.nb, id.ib); }
+		if( id.nc > 0 ) { sy2[3] = sum_square(y, id.nc, id.ic); }
+	}
+
 	public void sum_square_j( int j ) {
-		double s = 0;
-		for(int i=0;i<n;i++) { s += x[j][i] * x[j][i]; }
-		this.sx2[j][0] = s;
-		//
-		int i1;
-		s = 0;
-		for (int i=0; i<id.na; i++ ) {
-			i1 = id.ia[i];
-			s += x[j][i1] * x[j][i1];
-		}
-		this.sx2[j][1] = s / (double) id.na;
-		//
-		if( id.nb > 0 ) {
-			s = 0;
-			for (int i=0; i<id.nb; i++ ) {
-				i1 = id.ib[i];
-				s += x[j][i1] * x[j][i1];
-			}
-			this.sx2[j][2] = s / (double) id.nb;
-		}
-		//
-		if( id.nc > 0 ) {
-			s = 0;
-			for (int i=0; i<id.nc; i++ ) {
-				i1 = id.ic[i];
-				s += x[j][i1] * x[j][i1];
-			}
-			this.sx2[j][3] = s / (double) id.nc;
-		}
-		
+		sx2[j][0] = sumSquareForj(x, j, n); 
+		sx2[j][1] = sumSquareForj(x, j, id.na, id.ia);		
+		if( id.nb > 0 ) { sx2[j][2] = sumSquareForj(x, j, id.nb, id.ib); }
+		if( id.nc > 0 ) { sx2[j][3] = sumSquareForj(x, j, id.nc, id.ic); }
 	}
 
 	public void maxmin ( int j) {
-		xmin[j][0] = x[j][0]; xmax[j][0] = x[j][0];
-		for(int i=1;i<n;i++) {
-			if (x[j][i]<xmin[j][0]) xmin[j][0] = x[j][i];
-			if (x[j][i]>xmax[j][0]) xmax[j][0] = x[j][i];
-		}
-		//
-		int i1 = id.ia[0];
-		xmin[j][1] = x[j][i1]; xmax[j][1] = x[j][i1];
-		for (int i=1; i<id.na; i++ ) {
-			i1 = id.ia[i];
-			if (x[j][i1]<xmin[j][1]) xmin[j][1] = x[j][i1];
-			if (x[j][i1]>xmax[j][1]) xmax[j][1] = x[j][i1];
-		}
-		//
-		if( id.nb > 0 ) {
-			i1 = id.ib[0];
-			xmin[j][1] = x[j][i1]; xmax[j][1] = x[j][i1];
-			for (int i=1; i<id.nb; i++ ) {
-				i1 = id.ib[i];
-				if (x[j][i1]<xmin[j][2]) xmin[j][2] = x[j][i1];
-				if (x[j][i1]>xmax[j][2]) xmax[j][2] = x[j][i1];
-			}
-		}
-		//
-		if( id.nc > 0 ) {
-			i1 = id.ic[0];
-			xmin[j][1] = x[j][i1]; xmax[j][1] = x[j][i1];
-			for (int i=1; i<id.nc; i++ ) {
-				i1 = id.ic[i];
-				if (x[j][i1]<xmin[j][3]) xmin[j][3] = x[j][i1];
-				if (x[j][i1]>xmax[j][3]) xmax[j][3] = x[j][i1];
-			}
-		}
+		xmin[j][0] = minForj(x, j, n); 
+		xmin[j][1] = minForj(x, j, id.na, id.ia);		
+		if( id.nb > 0 ) { xmin[j][2] = minForj(x, j, id.nb, id.ib); }
+		if( id.nc > 0 ) { xmin[j][3] = minForj(x, j, id.nc, id.ic); }
+
+		xmax[j][0] = maxForj(x, j, n); 
+		xmax[j][1] = maxForj(x, j, id.na, id.ia);		
+		if( id.nb > 0 ) { xmax[j][2] = maxForj(x, j, id.nb, id.ib); }
+		if( id.nc > 0 ) { xmax[j][3] = maxForj(x, j, id.nc, id.ic); }
 	}
 	
 	public void f_yx() {
-		int i1;
-		for (int j=0; j<m; j++) {
-			yx[j][0] = 0.0;
-			for (int i=0; i<n; i++) {
-				yx[j][0] += y[i] * x[j][i];
-			}
-			//
-			yx[j][1] = 0.0;
-			for (int i=0; i<id.na; i++) {
-				i1 = id.ia[i];
-				yx[j][1] += y[i1] * x[j][i1];
-			}
-			//
-			if( id.nb > 0 ) {
-				yx[j][2] = 0.0;
-				for (int i=0; i<id.nb; i++ ) {
-					i1 = id.ib[i];
-					yx[j][2] += y[i1] * x[j][i1];
-				}
-			}
-			//
-			if( id.nc > 0 ) {
-				yx[j][3] = 0.0;
-				for (int i=0; i<id.nc; i++ ) {
-					i1 = id.ic[i];
-					yx[j][3] += y[i1] * x[j][i1];
-				}
-			}
+		for ( int j=0; j<m; j++ ) {
+			yx[j][0] = xyForj(y, x, j, n);
+			yx[j][1] = xyForj(y, x, j, id.na, id.ia);
+			if( id.nb > 0 ) { yx[j][2] = xyForj(y, x, j, id.nb, id.ib); }
+			if( id.nc > 0 ) { yx[j][3] = xyForj(y, x, j, id.nc, id.ic); }
 		}
 	}
 	
@@ -180,71 +96,40 @@ public class Xy {
 			   ", sum(xy**2)=" + sx2[j][0] +
 			   ", yx=" + yx[j][0]; 
 	}
-	// methods for y
-	public void ym() {
-		double s = 0;
-		for (int i=0; i<n; i++) { s = s + y[i]; }
-		this.ym[0] = s / (double) n;
-		//
-		int i1;
-		s = 0;
-		for (int i=0; i<id.na; i++ ) {
-			i1 = id.ia[i];
-			s += y[i1];
-		}
-		this.ym[1] = s / (double) id.na;
-		//
-		if( id.nb > 0 ) {
-			s = 0;
-			for (int i=0; i<id.nb; i++ ) {
-				i1 = id.ib[i];
-				s += y[i1];
-			}
-			this.ym[2] = s / (double) id.nb;
-		}
-		//
-		if( id.nc > 0 ) {
-			s = 0;
-			for (int i=0; i<id.nc; i++ ) {
-				i1 = id.ic[i];
-				s += y[i1];
-			}
-			this.ym[3] = s / (double) id.nc;
-		}
-	}
-	public void sum_square() {
-		double s = 0;
-		for(int i=0;i<n;i++) { s += y[i]*y[i]; }
-		this.sy2[0] = s;
-		//
-		int i1;
-		s = 0;
-		for (int i=0; i<id.na; i++ ) {
-			i1 = id.ia[i];
-			s += y[i1]*y[i1];
-		}
-		this.sy2[1] = s / (double) id.na;
-		//
-		if( id.nb > 0 ) {
-			s = 0;
-			for (int i=0; i<id.nb; i++ ) {
-				i1 = id.ib[i];
-				s += y[i1]*y[i1];;
-			}
-			this.sy2[2] = s / (double) id.nb;
-		}
-		//
-		if( id.nc > 0 ) {
-			s = 0;
-			for (int i=0; i<id.nc; i++ ) {
-				i1 = id.ic[i];
-				s += y[i1]*y[i1];;
-			}
-			this.sy2[3] = s / (double) id.nc;
-		}
-		
-	}
 
+//	public void sum_square() {
+//		double s = 0;
+//		for(int i=0;i<n;i++) { s += y[i]*y[i]; }
+//		this.sy2[0] = s;
+//		//
+//		int i1;
+//		s = 0;
+//		for (int i=0; i<id.na; i++ ) {
+//			i1 = id.ia[i];
+//			s += y[i1]*y[i1];
+//		}
+//		this.sy2[1] = s / (double) id.na;
+//		//
+//		if( id.nb > 0 ) {
+//			s = 0;
+//			for (int i=0; i<id.nb; i++ ) {
+//				i1 = id.ib[i];
+//				s += y[i1]*y[i1];;
+//			}
+//			this.sy2[2] = s / (double) id.nb;
+//		}
+//		//
+//		if( id.nc > 0 ) {
+//			s = 0;
+//			for (int i=0; i<id.nc; i++ ) {
+//				i1 = id.ic[i];
+//				s += y[i1]*y[i1];;
+//			}
+//			this.sy2[3] = s / (double) id.nc;
+//		}
+//	}
+
+	
 	public void maxmin () {
 		ymin[0]=y[0]; ymax[0]=y[0];
 		for(int i=1;i<n;i++) {

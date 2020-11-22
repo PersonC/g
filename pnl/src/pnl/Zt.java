@@ -1,12 +1,11 @@
 package pnl;
 
-public class Zt {
-	protected static final double EPS = 1e-20;
+public class Zt implements PrepareXYZ {
 	public int n,m,f;
 	public int typeABC;
 	public Xy xy;
 	//
-	public double[]   zm, zmin, zmax, sz2, yz;
+	public double[][]   zm, zmin, zmax, sz2, yz;
 	public double[][] z;
 	public double[][] a; // [m][f]
 	public double[]   r; // [f]
@@ -18,17 +17,17 @@ public class Zt {
 	double[] a2;
 	int[]    jx, kz;
 	
-	public Zt(int n, int m, int f, int typeABC, Xy x0) {
-		this.n = n;
-		this.m = m;
+	public Zt(int f, int typeABC, Xy x0) {
+		this.n = x0.n;
+		this.m = x0.m;
 		this.f = f;
 		this.xy = x0;
 		this.typeABC = typeABC;
-		this.zm   = new double[f];
-		this.zmin = new double[f];
-		this.zmax = new double[f];
-		this.sz2  = new double[f];
-		this.yz   = new double[f];
+		this.zm   = new double[f][4];
+		this.zmin = new double[f][4];
+		this.zmax = new double[f][4];
+		this.sz2  = new double[f][4];
+		this.yz   = new double[f][4];
 		this.z    = new double[f][n];
 		this.a    = new double[m][f];
 		this.r    = new double[f];
@@ -87,23 +86,29 @@ public class Zt {
 	}
 	//========
 	public void zm_j( int j ) {
-		double s =0.0;
-		for (int i=0; i<n; i++) { s = s + z[j][i]; }	
-		zm[j] = s/(double) n;
+		zm[j][0] = xmForj(z, j, n);
+		zm[j][1] = xmForj(z, j, xy.id.na, xy.id.ia);
+		if( xy.id.nb > 0 ) { zm[j][2] = xmForj(z, j, xy.id.nb, xy.id.ib); }
+		if( xy.id.nc > 0 ) { zm[j][3] = xmForj(z, j, xy.id.nc, xy.id.ic); }
 	}
 	
 	public void sum_square_j( int j ) {
-		double s = 0;
-		for(int i=0;i<n;i++) { s += z[j][i] * z[j][i]; }
-		this.sz2[j] = s;
+		sz2[j][0] = sumSquareForj(z, j, n); 
+		sz2[j][1] = sumSquareForj(z, j, xy.id.na, xy.id.ia);		
+		if( xy.id.nb > 0 ) { sz2[j][2] = sumSquareForj(z, j, xy.id.nb, xy.id.ib); }
+		if( xy.id.nc > 0 ) { sz2[j][3] = sumSquareForj(z, j, xy.id.nc, xy.id.ic); }
 	}
 
 	public void maxmin ( int j) {
-		zmin[j]=z[j][0]; zmax[j]=z[j][0];
-		for(int i=1;i<n;i++) {
-			if (z[j][i]<zmin[j]) zmin[j]=z[j][i];
-			if (z[j][i]>zmax[j]) zmax[j]=z[j][i];
-		}
+		zmin[j][0] = minForj(z, j, n); 
+		zmin[j][1] = minForj(z, j, xy.id.na, xy.id.ia);		
+		if( xy.id.nb > 0 ) { zmin[j][2] = minForj(z, j, xy.id.nb, xy.id.ib); }
+		if( xy.id.nc > 0 ) { zmin[j][3] = minForj(z, j, xy.id.nc, xy.id.ic); }
+
+		zmax[j][0] = maxForj(z, j, n); 
+		zmax[j][1] = maxForj(z, j, xy.id.na, xy.id.ia);		
+		if( xy.id.nb > 0 ) { zmax[j][2] = maxForj(z, j, xy.id.nb, xy.id.ib); }
+		if( xy.id.nc > 0 ) { zmax[j][3] = maxForj(z, j, xy.id.nc, xy.id.ic); }
 	}
 	
 	public void calc() {
@@ -116,12 +121,13 @@ public class Zt {
 
 	public void f_zx() {
 		for (int j=0; j<f0; j++) {
-			yz[j] = 0.0;
-			for (int i=0; i<n; i++) {
-				yz[j] += xy.y[i] * z[j][i];
-			}
+			yz[j][0] = xyForj(xy.y, z, j, n);
+			yz[j][1] = xyForj(xy.y, z, j, xy.id.na, xy.id.ia);
+			if( xy.id.nb > 0 ) { yz[j][2] = xyForj(xy.y, z, j, xy.id.nb, xy.id.ib); }
+			if( xy.id.nc > 0 ) { yz[j][3] = xyForj(xy.y, z, j, xy.id.nc, xy.id.ic); }
 		}
 	}
+
 	//=========
 	public void toPrint(String s) {
 		System.out.println(s);
@@ -152,17 +158,55 @@ public class Zt {
 	//================
 	public boolean model(int j, int k) { // расчет модели
 		double sxz = 0, D = 0, ax, az;
-		for(int i=0; i<n; i++) { sxz += xy.x[j][i] * z[k][i]; }
-		D = xy.sx2[j][0] * sz2[k] - sxz * sxz;
+		int i1;
+		
+		switch (typeABC) {
+		case 1:
+			for(int i=0; i<xy.id.na; i++) {
+				i1 = xy.id.ia[i];
+				sxz += xy.x[j][i1] * z[k][i1]; 
+			}
+			break;
+		case 2:
+			for(int i=0; i<xy.id.nb; i++) {
+				i1 = xy.id.ib[i];
+				sxz += xy.x[j][i1] * z[k][i1]; 
+			}
+			break;
+		default:
+			for(int i=0; i<n; i++) {
+				sxz += xy.x[j][i] * z[k][i]; 
+			}
+		}
+
+		D = xy.sx2[j][typeABC] * sz2[k][typeABC] - sxz * sxz;
 		if (Math.abs(D) < EPS) return(false);
-		ax = (xy.yx [j][0] * sz2[k] - sxz * yz   [k])    / D;
-		az = (xy.sx2[j][0] * yz [k] - sxz * xy.yx[j][0]) / D;
+		
+		ax = (xy.yx [j][typeABC] * sz2[k][typeABC] - sxz * yz   [k][typeABC]) / D;
+		az = (xy.sx2[j][typeABC] * yz [k][typeABC] - sxz * xy.yx[j][typeABC]) / D;
+		
 		double cr = 0, dd;
-		for (int i=0; i<n; i++) {
-			dd = xy.y[i] - ax * xy.x[j][i] - az * z[k][i]; cr += dd * dd;
+		switch(typeABC) {
+		case 1:
+			for (int i=0; i<xy.id.nb; i++) {
+				i1 = xy.id.ib[i];
+				dd = xy.y[i1] - ax * xy.x[j][i1] - az * z[k][i1]; cr += dd * dd;
+			}
+			break;
+		case 2:
+			for (int i=0; i<xy.id.na; i++) {
+				i1 = xy.id.ia[i];
+				dd = xy.y[i1] - ax * xy.x[j][i1] - az * z[k][i1]; cr += dd * dd;
+			}
+			break;
+		default:
+			for (int i=0; i<n; i++) {
+				dd = xy.y[i] - ax * xy.x[j][i] - az * z[k][i]; cr += dd * dd;
+			}
 		}
 		if (cr >= r[ir[0]]) return(false);
-// записываем модель		
+        
+		// записываем модель		
 		if (f2 < f) {
 			crm[f2] = cr; a1[f2] = ax; a2[f2] = az; jx[f2] = j; kz[f2] = k; f2 += 1;
 		} else {

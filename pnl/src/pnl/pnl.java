@@ -47,11 +47,11 @@ public class pnl {
 
         printBytes(runtime);
 		
-		System.out.println(x0.toPrint());
+/*		System.out.println(x0.toPrint());
 		System.out.println(x0.toPrint(0));
 		System.out.println(x0.toPrint(1));
 		System.out.println(x0.toPrint(2));
-		System.out.println(x0.toPrint(3));
+		System.out.println(x0.toPrint(3));*/
 		//
 		Z z = new Z(x0,f);
 		z.z0.set_zero_step();
