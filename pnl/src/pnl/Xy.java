@@ -69,6 +69,19 @@ public class Xy implements PrepareXYZ {
 		if( id.nc > 0 ) { xmax[j][3] = maxForj(x, j, id.nc, id.ic); }
 	}
 	
+
+	public void maxminy () {
+		ymin[0] = miny(y, n); 
+		ymin[1] = miny(y, id.na, id.ia);		
+		if( id.nb > 0 ) { ymin[2] = miny(y, id.nb, id.ib); }
+		if( id.nc > 0 ) { ymin[3] = miny(y, id.nc, id.ic); }
+
+		ymax[0] = maxy(y, n); 
+		ymax[1] = maxy(y, id.na, id.ia);		
+		if( id.nb > 0 ) { ymax[2] = maxy(y, id.nb, id.ib); }
+		if( id.nc > 0 ) { ymax[3] = maxy(y, id.nc, id.ic); }
+	}
+	
 	public void f_yx() {
 		for ( int j=0; j<m; j++ ) {
 			yx[j][0] = xyForj(y, x, j, n);
@@ -96,77 +109,9 @@ public class Xy implements PrepareXYZ {
 			   ", sum(xy**2)=" + sx2[j][0] +
 			   ", yx=" + yx[j][0]; 
 	}
-
-//	public void sum_square() {
-//		double s = 0;
-//		for(int i=0;i<n;i++) { s += y[i]*y[i]; }
-//		this.sy2[0] = s;
-//		//
-//		int i1;
-//		s = 0;
-//		for (int i=0; i<id.na; i++ ) {
-//			i1 = id.ia[i];
-//			s += y[i1]*y[i1];
-//		}
-//		this.sy2[1] = s / (double) id.na;
-//		//
-//		if( id.nb > 0 ) {
-//			s = 0;
-//			for (int i=0; i<id.nb; i++ ) {
-//				i1 = id.ib[i];
-//				s += y[i1]*y[i1];;
-//			}
-//			this.sy2[2] = s / (double) id.nb;
-//		}
-//		//
-//		if( id.nc > 0 ) {
-//			s = 0;
-//			for (int i=0; i<id.nc; i++ ) {
-//				i1 = id.ic[i];
-//				s += y[i1]*y[i1];;
-//			}
-//			this.sy2[3] = s / (double) id.nc;
-//		}
-//	}
-
 	
-	public void maxmin () {
-		ymin[0]=y[0]; ymax[0]=y[0];
-		for(int i=1;i<n;i++) {
-			if (y[i]<ymin[0]) ymin[0]=y[i];
-			if (y[i]>ymax[0]) ymax[0]=y[i];
-		}
-		//
-		int i1 = id.ia[0];
-		ymin[1]=y[i1]; ymax[1]=y[i1];
-		for (int i=1; i<id.na; i++ ) {
-			i1 = id.ia[i];
-			if (y[i1]<ymin[1]) ymin[1]=y[i1];
-			if (y[i1]>ymax[1]) ymax[1]=y[i1];
-		}
-		//
-		if( id.nb > 0 ) {
-			i1 = id.ib[0];
-			ymin[2]=y[i1]; ymax[2]=y[i1];
-			for (int i=1; i<id.nb; i++ ) {
-				i1 = id.ib[i];
-				if (y[i1]<ymin[2]) ymin[2]=y[i1];
-				if (y[i1]>ymax[2]) ymax[2]=y[i1];
-			}
-		}
-		//
-		if( id.nc > 0 ) {
-			i1 = id.ic[0];
-			ymin[3]=y[i1]; ymax[3]=y[i1];
-			for (int i=1; i<id.nc; i++ ) {
-				i1 = id.ic[i];
-				if (y[i1]<ymin[3]) ymin[3]=y[i1];
-				if (y[i1]>ymax[3]) ymax[3]=y[i1];
-			}
-		}
-	}
 	public void calc_y() {
-		ym(); sum_square(); maxmin();
+		ym(); sum_square(); maxminy();
 	}
 	
 	public String toPrint() {

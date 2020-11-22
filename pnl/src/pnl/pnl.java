@@ -42,10 +42,9 @@ public class pnl {
 		int na=12, nb=6, nc=2;
 		CL_I ind = new CL_I(n, na, nb, nc);
 		x0.set(ind);
-
 		x0.calc();
 
-        printBytes(runtime);
+//       printBytes(runtime);
 		
 /*		System.out.println(x0.toPrint());
 		System.out.println(x0.toPrint(0));

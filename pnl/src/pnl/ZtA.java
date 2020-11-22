@@ -2,7 +2,7 @@ package pnl;
 
 public class ZtA extends Zt {
 	public int[] abc;
-	public int nn;
+	public int   nn;
 
 	public ZtA(int f, int typeABC, Xy x0) {
 		super(f, typeABC, x0);
@@ -18,11 +18,11 @@ public class ZtA extends Zt {
 		for (int j=0; j<m; j++) {
 			if (f0 < f) {
 				double cr = 0, s = 0, zz = 0;
-				a[j][f0] = xy.ym[0] / xy.xm[j][0];
+				a[j][f0] = xy.ym[typeABC] / xy.xm[j][typeABC];
 				for (int i1=0; i1<nn; i1++) {
 					int i = abc[i1];
 					zz = a[j][f0]*xy.x[j][i];
-					z[f0][i1] =  zz;
+					z[f0][i] =  zz;
 					s = xy.y[i] - zz;
 					cr += s*s;
 				}
@@ -33,7 +33,7 @@ public class ZtA extends Zt {
 			} else {
 				double a_temp = 0;
 				double cr = 0, s = 0;
-				a_temp = xy.ym[0] / xy.xm[j][0];
+				a_temp = xy.ym[typeABC] / xy.xm[j][typeABC];
 				for (int i1=0; i1<nn; i1++) { 
 					int i = abc[i1];
                     s = xy.y[i]- a_temp*xy.x[j][i]; 
@@ -44,7 +44,7 @@ public class ZtA extends Zt {
 					a[j][f1] = a_temp; r[f1] = cr;
 	  				for (int i1=0; i1<nn; i1++) { 
 						int i = abc[i1];
-	  					z[f1][i1] = a[j][f1]*xy.x[j][i]; }
+	  					z[f1][i] = a[j][f1]*xy.x[j][i]; }
 	  				sort_r();
 				}
 			}

@@ -139,11 +139,11 @@ public class Zt implements PrepareXYZ {
 			s = s + "   " + a[j][k];
 		}
 		return "f="+k + 
-			   ", zmin=" + zmin[k] + 
-			   ", zmax=" + zmax[k] +
-			   ", zm=" + zm[k] +
-			   ", sum(z**2)=" + sz2[k] +
-			   ", zy=" + yz[k] +
+			   ", zmin=" + zmin[k][typeABC] + 
+			   ", zmax=" + zmax[k][typeABC] +
+			   ", zm=" + zm[k][typeABC] +
+			   ", sum(z**2)=" + sz2[k][typeABC] +
+			   ", zy=" + yz[k][typeABC] +
 			   ", cr=" + r[k] + 
 			   "\n" + s; 
 	}
@@ -154,8 +154,7 @@ public class Zt implements PrepareXYZ {
 		} 
 		System.out.println(s);
 	}
-	//===============
-	//================
+//================
 	public boolean model(int j, int k) { // расчет модели
 		double sxz = 0, D = 0, ax, az;
 		int i1;
@@ -217,7 +216,6 @@ public class Zt implements PrepareXYZ {
 			}
 			crm[fmax] = cr; a1[fmax] = ax; a2[fmax] = az; jx[fmax] = j; kz[fmax] = k;
 		}
-		
 		return(true);
 	}
 	//

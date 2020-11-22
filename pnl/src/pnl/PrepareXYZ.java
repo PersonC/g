@@ -108,4 +108,36 @@ public interface PrepareXYZ {
 		}
 		return(s);
 	}
+	
+	default double miny(double[] y, int n) {
+		double s = y[0];
+		for(int i=1; i<n; i++) {
+			if (y[i] < s) s = y[i];
+		}
+		return(s);
+	}
+	
+	default double miny(double[] y, int na, int[] i1) {
+		double s = y[ i1[0] ];
+		for(int i=1; i<na; i++) {
+			if (y[ i1[i] ] < s) s = y[ i1[i] ];
+		}
+		return(s);
+	}
+	
+	default double maxy(double[] y, int n) {
+		double s = y[0];
+		for(int i=1; i<n; i++) {
+			if (y[i] > s) s = y[i];
+		}
+		return(s);
+	}
+	
+	default double maxy(double[] y, int na, int[] i1) {
+		double s = y[ i1[0] ];
+		for(int i=1; i<na; i++) {
+			if (y[ i1[i] ] > s) s = y[ i1[i] ];
+		}
+		return(s);
+	}
 }
