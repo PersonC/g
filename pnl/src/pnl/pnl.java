@@ -40,12 +40,9 @@ public class pnl {
 		Xy x0 = new Xy(n,m);
 		x0.test_data();
 		int na=12, nb=6, nc=2;
-		CL_I ind = new CL_I(n, na, nb, nc);
-		x0.set(ind);
+		x0.set_sampling0(na, nb, nc);
 		x0.calc();
 
-//       printBytes(runtime);
-		
 /*		System.out.println(x0.toPrint());
 		System.out.println(x0.toPrint(0));
 		System.out.println(x0.toPrint(1));
@@ -59,12 +56,12 @@ public class pnl {
 		if(z.set_next_step()) {
 			z.z0.toPrintCr();
 			z.z0.toPrint("z1");
-		} else {System.out.println("======== END ==========");}
+		} else {System.out.println("======== END 1 ==========");}
 
 		if(z.set_next_step()) {
 			z.z0.toPrintCr();
 			z.z0.toPrint("z1");
-		} else {System.out.println("======== END ==========");}
+		} else {System.out.println("======== END 2 ==========");}
 //		
 		z.za.set_zero_step();
 		z.za.toPrint("za");

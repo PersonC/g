@@ -10,7 +10,6 @@ public class Z {
 	public ZtA zb;
 	
 	public Z(Xy x0, int f) {
-		this.n = x0.n; this.na = x0.id.na; this.nb = x0.id.nb; this.nc = x0.id.nc; 
 		this.m = x0.m;
 		if (f<0) f = m;
 		this.f = f;
@@ -43,5 +42,4 @@ public class Z {
 		if (yes) za.build();
 		return yes;
 	}
-
 }
