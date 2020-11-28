@@ -47,28 +47,13 @@ public class pnl {
 		System.out.println(x0.toPrint(0));
 		System.out.println(x0.toPrint(1));
 		System.out.println(x0.toPrint(2));
-		System.out.println(x0.toPrint(3));*/
-		//
+		System.out.println(x0.toPrint(3));
+*/
 		Z z = new Z(x0,f);
-		z.z0.set_zero_step();
-		z.z0.toPrint("z");
-//
-		if(z.set_next_step()) {
-			z.z0.toPrintCr();
-			z.z0.toPrint("z1");
-		} else {System.out.println("======== END 1 ==========");}
-
-		if(z.set_next_step()) {
-			z.z0.toPrintCr();
-			z.z0.toPrint("z1");
-		} else {System.out.println("======== END 2 ==========");}
-//		
-		z.za.set_zero_step();
-		z.za.toPrint("za");
-		z.zb.set_zero_step();
-		z.zb.toPrint("zb");
+		z.calc_model(z.z0, "full");
+		z.calc_model(z.za, "za");
+		z.calc_model(z.zb, "zb");
 
         printBytes(runtime);
-		
 	}
 }
