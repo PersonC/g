@@ -14,14 +14,20 @@ public class MathVector {
 
 	public void valuation() {
 		for (int i = 0; i < n; i++) {
-			if (v[i] < vmin)
-				vmin = v[i];
-			if (v[i] > vmax)
-				vmax = v[i];
+			if (v[i] < vmin) vmin = v[i];
+			if (v[i] > vmax) vmax = v[i];
 			vAverage += v[i];
 			sumv2 += v[i] * v[i];
 		}
 		vAverage /= (double) n;
+	}
+	
+	public void runZOne(double a, MathVector x) {
+		artifical = false;
+		for (int i = 0; i < n; i++) {
+			v[i] = x.v[i] * a;
+		}
+		valuation();
 	}
 
 	public void test(int alg, double A) {
@@ -44,5 +50,14 @@ public class MathVector {
 			break;
 		}
 	    valuation();
+	}
+	
+	public void printVector() {
+		System.out.println("Фактор " + iv);
+		for (int i = 0; i < n; i++) {
+			System.out.print(v[i] + " ");
+		}
+		System.out.println("\n" + "[" + vmin + "," + vAverage + "," 
+		                        + vmax + "]" + " s2=" + sumv2);
 	}
 }
