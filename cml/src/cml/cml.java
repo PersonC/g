@@ -1,6 +1,6 @@
 package cml;
 
-public class cml {
+public class cml implements IF_LSM {
 
 	public static void main(String[] args) {
 		int n = 12;
@@ -23,31 +23,32 @@ public class cml {
 		x1d.test(2, 1.3);    // 1.3 * i
 		x2d.test(2, 2.3);
 //---------------------------------------------------
-		zModel fa = new zModel(2,2);
+		zModel fa = new zModel(2,2,"Обучающая А",GMDH.BIASCOEF);
 		fa.sety(y,true);     fa.sety(yd,false);
 		fa.setxi(e,0,true);  fa.setxi(ed,0,false);
 		fa.setxi(x1,1,true); fa.setxi(x1d,1,false);
 		fa.setxi(x2,2,true); fa.setxi(x2d,2,false);
+		fa.init();
 
-		zModel fb = new zModel(2,2);
-		fb.sety(yd,true);     fb.sety(y,false);
-		fb.setxi(ed,0,true);  fb.setxi(e,0,false);
-		fb.setxi(x1d,1,true); fb.setxi(x1,1,false);
-		fb.setxi(x2d,2,true); fb.setxi(x2,2,false);
+//		zModel fb = new zModel(2,2,"Обучающая Б",GMDH.BIASCOEF);
+//		fb.sety(yd,true);     fb.sety(y,false);
+//		fb.setxi(ed,0,true);  fb.setxi(e,0,false);
+//		fb.setxi(x1d,1,true); fb.setxi(x1,1,false);
+//		fb.setxi(x2d,2,true); fb.setxi(x2,2,false);
 		
 //---------------------------------------------------
-		GenModel A = new GenModel(fa,fb);
+//		GenModel A = new GenModel(fa,fb,GMDH.BIASCOEF);
+		fa.printModel(true);
+		fa.genPopulation();
+		fa.printModel(false);
+		fa.genPopulation();
+		fa.printModel(false);
+//		A.A.printModel(true);
+//		A.genPopulation();
+//		A.A.printModel(false);
+//		A.genPopulation();
+//		A.A.printModel(false);
 
-	
-		//---------------------------------------------------
-		A.A.z[0].printVector();
-		A.A.z[1].printVector();	
-		A.A.z[2].printVector();	
-		A.A.z[3].printVector();	
-		A.A.z[4].printVector();	
-	
 	}
-	
-
 }
 

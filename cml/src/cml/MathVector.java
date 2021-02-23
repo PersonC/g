@@ -11,7 +11,19 @@ public class MathVector {
 		this.v  = new double[n];
 		this.iv = iv;
 	}
+	
+	public void addFirst(double a, MathVector x) {
+		for (int i=0; i<n; i++) {
+			v[i] = a * x.v[i];
+		}
+	}
 
+	public void addSecond(double a, MathVector x) {
+		for (int i=0; i<n; i++) {
+			v[i] += a * x.v[i];
+		}
+	}
+	
 	public void valuation() {
 		for (int i = 0; i < n; i++) {
 			if (v[i] < vmin) vmin = v[i];
