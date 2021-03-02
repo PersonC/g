@@ -64,21 +64,25 @@ public class zModel implements IF_LSM {
 				CRB1 = Math.abs(CRB1 / (double) yd.n - CRB2 / (double) y.n);
 				break;
 			case REG:
+				break;
+			case LSM:
+				CRB1 = detCR(y,z[j],a1);
 			default:
 				break;
 			}
 			insertCR(a1, j, CRB1);
-			set_coef0();
 		}
+		set_coef0();
 	}
 
 	public void set_coef0() {
 		int n = y.n, nd = yd.n;
 		for (int k=0; k<f; k++) {
 			
-			int j   = ij_z[0][k];
-			double az = aij[0][k];
-			int kz = m1 + k;
+			int     j = ij_z[0][k];
+			double az = aij [0][k];
+			int    kz = m1 + k;
+			
 			a[j][kz] = az;
 
 			MathVector qz  = new MathVector(n,  kz);
@@ -97,6 +101,7 @@ public class zModel implements IF_LSM {
 		cr     [fcur] = crnew;
 		ij_z[0][fcur] = j; 
 		aij [0][fcur] = a1;
+		
 		L      [fcur] = 0;
 		valCRmax      = crnew;
 		detMinCr1();
@@ -132,33 +137,47 @@ public class zModel implements IF_LSM {
 	public double[] model2(int ii, int jj) {
 		double[] b = new double[4], bb = new double[4];
 		double[] c = new double[4];
+		double CRA, CRB;
 // common
 		b = coef2(y, z[ii],z[jj]);
-		c[0] = b[0]; c[1] = b[1]; c[2] = b[2]; c[3] = 1e30;
+		c[0] = b[0]; // первый коэффициент 
+		c[1] = b[1]; // второй коэффициент
+		c[2] = b[2]; // внутренний критерий
+		c[3] = 1e30; // внешний критерий
 		if (b[2] == -1) return c;
 // 		
 		switch (crit) {
 		case BIASCOEF:
 			bb = coef2(yd, zd[ii],zd[jj]);
-//			cb[0] = bb[0]; cb[1] = bb[1]; cb[2] = bb[2]; cb[3] = 1e30;
 			if (bb[2] == -1) return c;
 			c[3] = Math.abs(c[0]-bb[0]) + Math.abs(c[1]-bb[1]);
 			break;
 		case BIASREG:	
 			bb = coef2(yd, zd[ii],zd[jj]);
-//			cb[0] = bb[0]; cb[1] = bb[1]; cb[2] = bb[2]; cb[3] = 1e30;
+			CRB = detCR(yd,zd[ii],zd[jj],c[0],c[1]);
+			CRA = detCR(y,z[ii],z[jj],bb[0],bb[1]);
 			if (bb[2] == -1) return c;
-			c[3] = Math.abs(c[2] / (double) yd.n - bb[2] / (double) y.n);
+			c[3] = Math.abs(CRB / (double) yd.n - CRA / (double) y.n);
 			break;
 		case REG:
+			c[3] = detCR(yd,zd[ii],zd[jj],c[0],c[1]);
+			break;
+		case LSM:
 		default:
-			c[3] = detCR(yd, zd[ii], zd[jj], b[0], b[1]);
+			c[3] = c[2];
 			break;
 		}
 		return c;
 	}
 	
 //----------------------------------------------------------------
+	
+	public void generator(boolean printZ, boolean printIteration, int Lmax) {
+		if (printZ) printModel(printZ);
+		do {
+			if (printIteration) printModel(false);
+		} while (genPopulation() && Lcurrent < Lmax);
+	}
 
 	public boolean genPopulation() {
 		Lcurrent++;
@@ -230,15 +249,47 @@ public class zModel implements IF_LSM {
 			for (int i=0; i<mxz; i++) {
 				zd[i].printVector();
 			}
-		}
-		System.out.println("\nИтерация " + Lcurrent + " max СR[" + iCRmax + "]=" + valCRmax);
-		for (int l=m1; l<mxz; l++) {
-			System.out.println("Модель " + (l-m1) + " с уровня " + L[l-m1] + ": критерий " + cr[l-m1]);
-			for (int j=0; j<m1; j++) {
-				System.out.print("a[" + j + "]=" + a[j][l] + " ");
+		} else {
+			System.out.println("\nИтерация " + Lcurrent + " max СR[" + iCRmax + "]=" + valCRmax);
+			for (int l=m1; l<mxz; l++) {
+				System.out.println("Модель " + (l-m1) + " с уровня " + L[l-m1] + ": критерий " + cr[l-m1]);
+				for (int j=0; j<m1; j++) {
+					System.out.print("a[" + j + "]=" + a[j][l] + " ");
+				}
+				System.out.print("\n");
 			}
-			System.out.print("\n");
 		}
+	}
+
+//=========================================================================
+	public void utilityTest(int n, int nd) {
+
+		MathVector y = new MathVector(n,-1),
+				   e = new MathVector(n, 0),
+				   x1 = new MathVector(n, 1),
+				   x2 = new MathVector(n, 2);
+		y.test(1, 1.1);     // random * 1.1
+		e.test(0, 1);       // const = 1 
+		x1.test(2, 1.2);    // 1.2 * i
+		x2.test(1,2.0);
+//--------------------------------------------------
+		
+		MathVector yd = new MathVector(nd,-1),
+				   ed = new MathVector(nd, 0),
+				   x1d = new MathVector(nd, 1),
+				   x2d = new MathVector(nd, 2);
+		yd.test(1, 1.2);     // random * 1.2
+		ed.test(0, 1);       //  
+		x1d.test(2, 1.3);    // 1.3 * i
+		x2d.test(2, 2.3);
+		
+		
+		sety(y,true);     sety(yd,false);
+		setxi(e,0,true);  setxi(ed,0,false);
+		setxi(x1,1,true); setxi(x1d,1,false);
+		setxi(x2,2,true); setxi(x2d,2,false);
+		init();
+		
 	}
 
 }
