@@ -5,17 +5,19 @@ public class zModel implements IF_LSM {
 	public MathVector[] z;
 	public MathVector   yd;
 	public MathVector[] zd;
-	public int m,f;
-	public int m1,mxz;
+	public MathVector   yc;
+	public MathVector[] zc;
+	public int    m,f;
+	public int    m1,mxz;
 	public double a [][]; // coefficient [m1][mxz]
 	public double cr[];   // criterion [f]
 	public int    L [];   //           [f]
 	public int    Lcurrent = 0;
 	public double valCRmax = 1E30;
-	public int iCRmax   = 0;
+	public int    iCRmax   = 0;
 	
-	public int   ij_z[][]; // [2][f] first factor, second factor
-	public double aij[][];
+	public int    ij_z[][]; // [2][f] first factor, second factor
+	public double aij [][];
 	
 	private String nameModel;
 	private GMDH crit;
@@ -27,8 +29,11 @@ public class zModel implements IF_LSM {
 		this.f   = f;
 		this.mxz = m + 1 + f;
 		this.m1  = m + 1;
+		this.crit = cri;
+		
 		this.z   = new MathVector[mxz];
 		this.zd  = new MathVector[mxz];
+		this.zc  = new MathVector[m1];
 		this.a   = new double[m1][mxz];
 		for (int j=0; j<m1; j++) { a[j][j] = 1.0; }
 		this.cr  = new double[f];
@@ -36,18 +41,15 @@ public class zModel implements IF_LSM {
 		for( int i = 0; i < f; i++) { cr[i]=1E30; L[i]=-1; }
 		this.ij_z = new int[2][f];
 		this.aij  =  new double[2][f];
-		this.crit = cri;
 	}
 	
-	public void sety  (MathVector y, boolean prime) {
-	    if (prime) { this.y = y; } else { this.yd = y; }
-	}
-	public void setxi (MathVector x, int i, boolean prime) {
-		if (prime) { this.z[i] = x; } else { this.zd[i] = x; }
-	}
+	public void sety  (MathVector y, boolean prime) { if(prime) this.y = y; else this.yd = y; }
+	public void sety  (MathVector y) { this.yc = y; }
+
+	public void setxi (MathVector x, int i, boolean prime) { if(prime) this.z[i] = x; else this.zd[i] = x; }
+	public void setxi (MathVector x, int i) { this.zc[i] = x; }
 	
 //===========================================================
-	
 	public void init() {
 		for (int j=0; j<m1; j++) {
 			double a1 = coef1(y, z[j]);
@@ -131,9 +133,7 @@ public class zModel implements IF_LSM {
 			}
 		}
 	}
-
 //============================================================
-
 	public double[] model2(int ii, int jj) {
 		double[] b = new double[4], bb = new double[4];
 		double[] c = new double[4];
@@ -169,9 +169,7 @@ public class zModel implements IF_LSM {
 		}
 		return c;
 	}
-	
 //----------------------------------------------------------------
-	
 	public void generator(boolean printZ, boolean printIteration, int Lmax) {
 		if (printZ) printModel(printZ);
 		do {
@@ -232,9 +230,7 @@ public class zModel implements IF_LSM {
 			}
 		}
 	}
-
 //----------------------------------------------------------------
-	
 	public void printModel(boolean pZ) {
 		
 		System.out.println("\nModel " + nameModel + " Критерий " + crit);
@@ -260,10 +256,29 @@ public class zModel implements IF_LSM {
 			}
 		}
 	}
-
+	
+	public double[][] matrixR(boolean corr) {
+		double[][] R = new double[m1][m1];
+		for (int i=1; i<m1; i++) {
+			for (int j=i; j<m1; j++) {
+				if (corr) R[i][j] = corr(z[i], z[j]); else R[i][j] = covar(z[i], z[j]);
+			}
+		}
+		return R;
+	}
+	
+	public void printMatrixR(boolean corr) {
+		double[][] R = matrixR(corr);
+		System.out.println( ((corr) ?"Корреляционная " : "Ковариационная") + "матрица");
+		for ( int i=1; i<m1; i++) {
+			for ( int j=1; j<m1; j++) {
+				if(i<j) System.out.print(R[j][i] + " "); else System.out.print(R[i][j] + " ");
+			}
+			System.out.println("\n");
+		}
+	}
 //=========================================================================
-	public void utilityTest(int n, int nd) {
-
+	public void utilityTest(int n) {
 		MathVector y = new MathVector(n,-1),
 				   e = new MathVector(n, 0),
 				   x1 = new MathVector(n, 1),
@@ -272,24 +287,42 @@ public class zModel implements IF_LSM {
 		e.test(0, 1);       // const = 1 
 		x1.test(2, 1.2);    // 1.2 * i
 		x2.test(1,2.0);
-//--------------------------------------------------
-		
+		sety(y,true);
+		setxi(e,0,true);
+		setxi(x1,1,true);
+		setxi(x2,2,true);
+	}
+	
+	public void utilityTest(int n, int nd) {
+		utilityTest(n);
 		MathVector yd = new MathVector(nd,-1),
 				   ed = new MathVector(nd, 0),
 				   x1d = new MathVector(nd, 1),
 				   x2d = new MathVector(nd, 2);
-		yd.test(1, 1.2);     // random * 1.2
-		ed.test(0, 1);       //  
+		yd. test(1, 1.2);     // random * 1.2
+		ed. test(0, 1);       //  
 		x1d.test(2, 1.3);    // 1.3 * i
 		x2d.test(2, 2.3);
-		
-		
-		sety(y,true);     sety(yd,false);
-		setxi(e,0,true);  setxi(ed,0,false);
-		setxi(x1,1,true); setxi(x1d,1,false);
-		setxi(x2,2,true); setxi(x2d,2,false);
-		init();
-		
+		sety(yd,false);
+		setxi(ed,0,false);
+		setxi(x1d,1,false);
+		setxi(x2d,2,false);
+	}
+	
+	public void utilityTest(int n, int nd, int nc) {
+		utilityTest(n,nd);
+		MathVector y = new MathVector(nc,-1),
+				   e = new MathVector(nc, 0),
+				   x1 = new MathVector(nc, 1),
+				   x2 = new MathVector(nc, 2);
+		y. test(1, 1.1);     // random * 1.1
+		e. test(0, 1);       // const = 1 
+		x1.test(2, 1.2);    // 1.2 * i
+		x2.test(1,2.0);
+		sety(y);
+		setxi(e,0);
+		setxi(x1,1);
+		setxi(x2,2);
 	}
 
 }

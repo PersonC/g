@@ -1,14 +1,8 @@
 package cml;
 
 public interface IF_LSM {
-	
 	public static final double EPS = 1e-20;
-	public enum GMDH {
-		LSM,
-		REG,
-		BIASCOEF,
-		BIASREG
-	}
+	public enum GMDH { LSM,REG,BIASCOEF,BIASREG	};
 	
 	default double xy(MathVector y, MathVector x) {
 		double xy = 0.0;
@@ -16,11 +10,32 @@ public interface IF_LSM {
 		return xy;
 	}
 	
+	default double cosxy(MathVector x1, MathVector x2) {
+		// cos угла между векторами
+		double DD = x1.sumv2 * x2.sumv2;
+		if (DD == 0 ) return 0;
+		double xx = xy(x1,x2) / Math.sqrt(DD);
+		return xx;
+	}
+	
+	default double covar(MathVector x1, MathVector x2) {
+		// ковариация
+		double xx = xy(x1,x2) / (double) x1.n;
+		xx = xx - x1.vAverage * x2.vAverage;
+		return xx;
+	}
+
+	default double corr(MathVector x1, MathVector x2) {
+		// ковариация
+		double DD = x1.D * x2.D;
+		if (DD == 0 ) return 0;
+		double xx = covar(x1,x2) / (Math.sqrt(DD));
+		return xx;
+	}
+	
 	default double[] coef2(MathVector y, MathVector x1, MathVector x2) {
-		
 		double yx1 = xy(y,x1), yx2 = xy(y,x2), sxz = xy(x1,x2);
 		double D = x1.sumv2 * x2.sumv2 - sxz * sxz;
-
 		double[] lsm = new double[3];
 		if (Math.abs(D) < EPS) { lsm[2] = -1; return lsm; }
 		lsm[0] = (yx1 * x2.sumv2 - sxz * yx2) / D;
