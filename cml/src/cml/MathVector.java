@@ -53,6 +53,11 @@ public class MathVector {
 	    valuation();
 	}
 	
+	public void oneVector( ) {
+		for (int i = 0; i < n; i++) { v[i] = 1; }
+		valuation();
+	}
+	
 	public void printVector() {
 		System.out.println("Фактор " + iv);
 		for (int i = 0; i < n; i++) {

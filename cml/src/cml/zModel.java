@@ -1,5 +1,7 @@
 package cml;
 
+import java.io.FileNotFoundException;
+
 public class zModel implements IF_LSM {
 	public MathVector   y;
 	public MathVector[] z;
@@ -272,7 +274,7 @@ public class zModel implements IF_LSM {
 		System.out.println( ((corr) ?"Корреляционная " : "Ковариационная") + "матрица");
 		for ( int i=1; i<m1; i++) {
 			for ( int j=1; j<m1; j++) {
-				if(i<j) System.out.print(R[j][i] + " "); else System.out.print(R[i][j] + " ");
+				if(i<j) System.out.print(R[i][j] + " "); else System.out.print(R[j][i] + " ");
 			}
 			System.out.println("\n");
 		}
@@ -323,6 +325,104 @@ public class zModel implements IF_LSM {
 		setxi(e,0);
 		setxi(x1,1);
 		setxi(x2,2);
+	}
+	
+	public void createData(int n, int nd, int nc) {
+		if (n>0) {
+			y = new MathVector(n, -1);
+			for (int j=0; j<m1; j++) {
+				z[j] = new MathVector(n, j);
+			}
+			z[0].oneVector();
+		}
+		if (nd>0) {
+			yd = new MathVector(nd, -1);
+			for (int j=0; j<m1; j++) {
+				zd[j] = new MathVector(nd, j);
+			}
+			zd[0].oneVector();
+		}
+		if (nc>0) {
+			yc = new MathVector(nc, -1);
+			for (int j=0; j<m1; j++) {
+				zc[j] = new MathVector(nc, j);
+			}
+			zc[0].oneVector();
+		}
+	}
+	
+	public String readData(int my, int mx[]) throws FileNotFoundException {
+		InputNameFile in =  new InputNameFile();
+		boolean isfr = in.openFr();
+		if (!isfr) return "";
+		int n = y.n, nd = yd.n, nc = yc.n;
+		if (in.line == 0) { in.scan.nextLine(); in.line++; }
+		int mj = mx.length;
+		for (int l=0; l<n; l++) {
+			//---
+			if (in.hasL()) {
+				Double d[] = in.getLineDouble();
+				for (int i=0; i<d.length; i++) {
+					if (i == my) {
+						y.v[l] = d[i];
+					} else {
+						for (int j=0; j<mj; j++) {
+							if (i == mx[j]) {
+								z[j+1].v[l] = d[i]; 
+							}
+						}
+					}
+				}
+			} else { break; }
+			//---
+		}
+		for (int l=0; l<nd; l++) {
+			//---
+			if (in.hasL()) {
+				Double d[] = in.getLineDouble();
+				for (int i=0; i<d.length; i++) {
+					if (i == my) {
+						yd.v[l] = d[i];
+					} else {
+						for (int j=0; j<mj; j++) {
+							if (i == mx[j]) {
+								zd[j+1].v[l] = d[i]; 
+							}
+						}
+					}
+				}
+			} else { break; }
+			//---
+		}
+		for (int l=0; l<nc; l++) {
+			//---
+			if (in.hasL()) {
+				Double d[] = in.getLineDouble();
+				for (int i=0; i<d.length; i++) {
+					if (i == my) {
+						yc.v[l] = d[i];
+					} else {
+						for (int j=0; j<mj; j++) {
+							if (i == mx[j]) {
+								zc[j+1].v[l] = d[i]; 
+							}
+						}
+					}
+				}
+			} else { break; }
+			//---
+			
+		}
+		y.valuation();
+		yd.valuation();
+		yc.valuation();
+		for (int j=1; j<m1; j++) {
+			z[j].valuation();
+			zd[j].valuation();
+			zc[j].valuation();
+		}
+		
+		return in.nameFile + " " + isfr;
 	}
 
 }
