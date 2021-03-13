@@ -237,15 +237,26 @@ public class zModel implements IF_LSM {
 		
 		System.out.println("\nModel " + nameModel + " Критерий " + crit);
 		if (pZ) {
-			System.out.println("Параметры обучающей выборки");
-			y.printVector();
+			System.out.println("\nПараметры обучающей выборки");
+			if (y != null) y.printVector();
+			else System.out.println("Отсутствует y");
 			for (int i=0; i<mxz; i++) {
-				z[i].printVector();
+				if (z[i] != null) z[i].printVector();
+				else System.out.println("Отсутствует фактор " + i);
 			}
 			System.out.println("Параметры проверяющей выборки");
-			yd.printVector();
+			if (yd != null) yd.printVector();
+			else System.out.println("Отсутствует y");
 			for (int i=0; i<mxz; i++) {
-				zd[i].printVector();
+				if (zd[i] != null) zd[i].printVector();
+				else System.out.println("Отсутствует фактор " + i);
+			}
+			System.out.println("Параметры экзаменационной выборки");
+			if (yc != null) yc.printVector();
+			else System.out.println("Отсутствует y");
+			for (int i=0; i<m1; i++) {
+				if (zc[i] != null) zc[i].printVector();
+				else System.out.println("Отсутствует фактор " + i);
 			}
 		} else {
 			System.out.println("\nИтерация " + Lcurrent + " max СR[" + iCRmax + "]=" + valCRmax);
@@ -271,82 +282,78 @@ public class zModel implements IF_LSM {
 	
 	public void printMatrixR(boolean corr) {
 		double[][] R = matrixR(corr);
-		System.out.println( ((corr) ?"Корреляционная " : "Ковариационная") + "матрица");
+		String sf;
+		if (corr) {
+			System.out.println("Корреляционная матрица");
+			sf = " %+1.2f";
+		} else {
+			System.out.println("Корреляционная матрица");
+			sf = " %+8e";
+		}
 		for ( int i=1; i<m1; i++) {
 			for ( int j=1; j<m1; j++) {
-				if(i<j) System.out.print(R[i][j] + " "); else System.out.print(R[j][i] + " ");
+				if(i<j) System.out.printf(sf,R[i][j]); 
+				else    System.out.printf(sf,R[j][i]);
 			}
 			System.out.println("\n");
 		}
 	}
 //=========================================================================
-	public void utilityTest(int n) {
-		MathVector y = new MathVector(n,-1),
-				   e = new MathVector(n, 0),
-				   x1 = new MathVector(n, 1),
-				   x2 = new MathVector(n, 2);
-		y.test(1, 1.1);     // random * 1.1
-		e.test(0, 1);       // const = 1 
-		x1.test(2, 1.2);    // 1.2 * i
-		x2.test(1,2.0);
+	public void utilityTest(int n, int m) {
+		MathVector[] zz = new MathVector[m+1];
+		MathVector y = new MathVector(n,-1);
+		for (int j=0; j<=m; j++) {
+			zz[j] = new MathVector(n);
+			zz[j].test(j, j+1);
+			setxi(zz[j],j,true);
+			for (int i=0; i<y.n; i++) y.v[i]+=zz[j].v[i];
+		}
+		y.valuation();
 		sety(y,true);
-		setxi(e,0,true);
-		setxi(x1,1,true);
-		setxi(x2,2,true);
 	}
 	
-	public void utilityTest(int n, int nd) {
-		utilityTest(n);
-		MathVector yd = new MathVector(nd,-1),
-				   ed = new MathVector(nd, 0),
-				   x1d = new MathVector(nd, 1),
-				   x2d = new MathVector(nd, 2);
-		yd. test(1, 1.2);     // random * 1.2
-		ed. test(0, 1);       //  
-		x1d.test(2, 1.3);    // 1.3 * i
-		x2d.test(2, 2.3);
+	public void utilityTest(int n, int nd, int m) {
+		MathVector[] zz = new MathVector[m+1];
+		utilityTest(n,m);
+		MathVector yd = new MathVector(nd,-1);
+		for (int j=0; j<=m; j++) {
+			zz[j] = new MathVector(nd);
+			zz[j].test(j, j+1);
+			setxi(zz[j],j,false);
+			for (int i=0; i<yd.n; i++) yd.v[i]+=zz[j].v[i];
+		}
+		yd.valuation();
 		sety(yd,false);
-		setxi(ed,0,false);
-		setxi(x1d,1,false);
-		setxi(x2d,2,false);
 	}
 	
-	public void utilityTest(int n, int nd, int nc) {
-		utilityTest(n,nd);
-		MathVector y = new MathVector(nc,-1),
-				   e = new MathVector(nc, 0),
-				   x1 = new MathVector(nc, 1),
-				   x2 = new MathVector(nc, 2);
-		y. test(1, 1.1);     // random * 1.1
-		e. test(0, 1);       // const = 1 
-		x1.test(2, 1.2);    // 1.2 * i
-		x2.test(1,2.0);
-		sety(y);
-		setxi(e,0);
-		setxi(x1,1);
-		setxi(x2,2);
+	public void utilityTest(int n, int nd, int nc, int m) {
+		MathVector[] zz = new MathVector[m+1];
+		utilityTest(n,nd, m);
+		MathVector yc = new MathVector(nc,-1);
+		for (int j=0; j<=m; j++) {
+			zz[j] = new MathVector(nc);
+			zz[j].test(j, j+1);
+			setxi(zz[j],j);
+			for (int i=0; i<yc.n; i++) yc.v[i]+=zz[j].v[i];
+		}
+		yc.valuation();
+		sety(yc);
 	}
 	
 	public void createData(int n, int nd, int nc) {
 		if (n>0) {
 			y = new MathVector(n, -1);
-			for (int j=0; j<m1; j++) {
-				z[j] = new MathVector(n, j);
-			}
+			for (int j=0; j<m1; j++) { z[j] = new MathVector(n, j); }
 			z[0].oneVector();
 		}
 		if (nd>0) {
 			yd = new MathVector(nd, -1);
-			for (int j=0; j<m1; j++) {
-				zd[j] = new MathVector(nd, j);
-			}
+			for (int j=0; j<m1; j++) { zd[j] = new MathVector(nd, j); }
 			zd[0].oneVector();
 		}
 		if (nc>0) {
 			yc = new MathVector(nc, -1);
-			for (int j=0; j<m1; j++) {
-				zc[j] = new MathVector(nc, j);
-			}
+			for (int j=0; j<m1; j++) { zc[j] = new MathVector(nc, j); }
 			zc[0].oneVector();
 		}
 	}
@@ -359,69 +366,48 @@ public class zModel implements IF_LSM {
 		if (in.line == 0) { in.scan.nextLine(); in.line++; }
 		int mj = mx.length;
 		for (int l=0; l<n; l++) {
-			//---
 			if (in.hasL()) {
 				Double d[] = in.getLineDouble();
 				for (int i=0; i<d.length; i++) {
-					if (i == my) {
-						y.v[l] = d[i];
-					} else {
+					if (i == my) { y.v[l] = d[i]; } 
+					else {
 						for (int j=0; j<mj; j++) {
-							if (i == mx[j]) {
-								z[j+1].v[l] = d[i]; 
-							}
+							if (i == mx[j]) { z[j+1].v[l] = d[i]; }
 						}
 					}
 				}
 			} else { break; }
-			//---
 		}
 		for (int l=0; l<nd; l++) {
-			//---
 			if (in.hasL()) {
 				Double d[] = in.getLineDouble();
 				for (int i=0; i<d.length; i++) {
-					if (i == my) {
-						yd.v[l] = d[i];
-					} else {
+					if (i == my) { yd.v[l] = d[i]; } 
+					else {
 						for (int j=0; j<mj; j++) {
-							if (i == mx[j]) {
-								zd[j+1].v[l] = d[i]; 
-							}
+							if (i == mx[j]) { zd[j+1].v[l] = d[i]; }
 						}
 					}
 				}
 			} else { break; }
-			//---
 		}
 		for (int l=0; l<nc; l++) {
-			//---
 			if (in.hasL()) {
 				Double d[] = in.getLineDouble();
 				for (int i=0; i<d.length; i++) {
-					if (i == my) {
-						yc.v[l] = d[i];
-					} else {
+					if (i == my) { yc.v[l] = d[i];} 
+					else {
 						for (int j=0; j<mj; j++) {
-							if (i == mx[j]) {
-								zc[j+1].v[l] = d[i]; 
-							}
+							if (i == mx[j]) { zc[j+1].v[l] = d[i]; }
 						}
 					}
 				}
 			} else { break; }
-			//---
-			
 		}
-		y.valuation();
-		yd.valuation();
-		yc.valuation();
+		y.valuation(); yd.valuation(); yc.valuation();
 		for (int j=1; j<m1; j++) {
-			z[j].valuation();
-			zd[j].valuation();
-			zc[j].valuation();
+			z[j].valuation(); zd[j].valuation(); zc[j].valuation();
 		}
-		
 		return in.nameFile + " " + isfr;
 	}
 

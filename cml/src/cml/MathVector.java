@@ -11,6 +11,11 @@ public class MathVector {
 		this.v  = new double[n];
 		this.iv = iv;
 	}
+
+	public MathVector(int n) {
+		this.n  = n;
+		this.v  = new double[n];
+	}
 	
 	public void addFirst(double a, MathVector x) {
 		for (int i=0; i<n; i++) { v[i] = a * x.v[i]; }
@@ -38,16 +43,36 @@ public class MathVector {
 	}
 
 	public void test(int alg, double A) {
+// 0 - константа
+// 1 - случайное число * А
+// 2 - линейная функция х
+// 3 - линейная фунция * А * случайное число
+// 4 - ехр ( А * случайное число )
+// 5 - cos ( А * случайное число )
+// 6... - 100 * случайное число * случайное число		
 		artifical = true;
 		switch (alg) {
 		case (0):
-			for (int i = 0; i < n; i++) { v[i] = A;	}
+			for (int i = 0; i < n; i++) { v[i] = A;	iv=alg; }
 			break;
 		case (1):
-			for (int i = 0; i < n; i++) { v[i] = A * Math.random();	}
+			for (int i = 0; i < n; i++) { v[i] = A * Math.random(); iv=alg;	}
 			break;
+		case (2):
+			for (int i = 0; i < n; i++) { v[i] = A * (double) i; iv=alg; }
+			break;
+		case (3):
+			for (int i = 0; i < n; i++) { v[i] = A * Math.random() * (double) i; iv=alg; }
+			break;
+		case (4):
+			for (int i = 0; i < n; i++) { v[i] = Math.exp( A * Math.random() ); iv=alg; }
+			break;
+		case (5):
+			for (int i = 0; i < n; i++) { v[i] = Math.cos( A * Math.random() ); iv=alg; }
+			break;
+			
 		default:
-			for (int i = 0; i < n; i++) { v[i] = A * (double) i; }
+			for (int i = 0; i < n; i++) { v[i] = 100 * Math.random() * Math.random(); iv=alg; }
 			break;
 		}
 	    valuation();
