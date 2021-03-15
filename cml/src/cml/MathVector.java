@@ -12,10 +12,16 @@ public class MathVector {
 		this.iv = iv;
 	}
 
-	public MathVector(int n) {
-		this.n  = n;
-		this.v  = new double[n];
+	public void oneVector( ) {
+		for (int i = 0; i < n; i++) { v[i] = 1; }
+		valuation();
 	}
+	
+	public void oneVector( double yv ) {
+		for (int i = 0; i < n; i++) { v[i] = yv; }
+		valuation();
+	}
+
 	
 	public void addFirst(double a, MathVector x) {
 		for (int i=0; i<n; i++) { v[i] = a * x.v[i]; }
@@ -26,7 +32,8 @@ public class MathVector {
 	}
 	
 	public void valuation() {
-		for (int i = 0; i < n; i++) {
+		vmin = vmax = vAverage = v[0]; sumv2 = v[0] * v[0];
+		for (int i = 1; i < n; i++) {
 			if (v[i] < vmin) vmin = v[i];
 			if (v[i] > vmax) vmax = v[i];
 			vAverage += v[i];
@@ -42,7 +49,7 @@ public class MathVector {
 		valuation();
 	}
 
-	public void test(int alg, double A) {
+	public void test(int alg, double A, double istart) {
 // 0 - константа
 // 1 - случайное число * А
 // 2 - линейная функция х
@@ -52,35 +59,30 @@ public class MathVector {
 // 6... - 100 * случайное число * случайное число		
 		artifical = true;
 		switch (alg) {
-		case (0):
-			for (int i = 0; i < n; i++) { v[i] = A;	iv=alg; }
-			break;
 		case (1):
-			for (int i = 0; i < n; i++) { v[i] = A * Math.random(); iv=alg;	}
+			for (int i = 0; i < n; i++) { v[i] = A * ((double) i + istart);	iv=alg; }
 			break;
 		case (2):
-			for (int i = 0; i < n; i++) { v[i] = A * (double) i; iv=alg; }
+			for (int i = 0; i < n; i++) { v[i] = A * Math.exp(- (i + istart) * 0.1); iv=alg; }
 			break;
 		case (3):
-			for (int i = 0; i < n; i++) { v[i] = A * Math.random() * (double) i; iv=alg; }
+			for (int i = 0; i < n; i++) { v[i] = Math.abs(A)+ A * 1/Math.sqrt(i+0.1); iv=alg; }
 			break;
 		case (4):
-			for (int i = 0; i < n; i++) { v[i] = Math.exp( A * Math.random() ); iv=alg; }
+			for (int i = 0; i < n; i++) { v[i] = A * (double) i+A; iv=alg; }
 			break;
 		case (5):
-			for (int i = 0; i < n; i++) { v[i] = Math.cos( A * Math.random() ); iv=alg; }
+			for (int i = 0; i < n; i++) { v[i] = A * Math.cos( A * (double) i *0.15 ); iv=alg; }
+			break;
+		case (6):
+			for (int i = 0; i < n; i++) { v[i] = -A * Math.log(Math.abs(A) + i +1) / (double) (A+i-9.5); iv=alg;	}
 			break;
 			
 		default:
-			for (int i = 0; i < n; i++) { v[i] = 100 * Math.random() * Math.random(); iv=alg; }
+			for (int i = 0; i < n; i++) { v[i] = A * i * Math.random() * Math.random(); iv=alg; }
 			break;
 		}
 	    valuation();
-	}
-	
-	public void oneVector( ) {
-		for (int i = 0; i < n; i++) { v[i] = 1; }
-		valuation();
 	}
 	
 	public void printVector() {
