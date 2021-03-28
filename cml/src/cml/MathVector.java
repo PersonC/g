@@ -24,10 +24,12 @@ public class MathVector {
 
 	
 	public void addFirst(double a, MathVector x) {
-		for (int i=0; i<n; i++) { v[i] = a * x.v[i]; }
+		for (int i=0; i<n; i++) { 
+			if (a ==0) v[i]=0; else v[i] = a * x.v[i]; }
 	}
 
 	public void addSecond(double a, MathVector x) {
+		if (a == 0) return;
 		for (int i=0; i<n; i++) { v[i] += a * x.v[i]; }
 	}
 	
@@ -63,13 +65,13 @@ public class MathVector {
 			for (int i = 0; i < n; i++) { v[i] = A * ((double) i + istart);	iv=alg; }
 			break;
 		case (2):
-			for (int i = 0; i < n; i++) { v[i] = A * Math.exp(- (i + istart) * 0.1); iv=alg; }
+			for (int i = 0; i < n; i++) { v[i] = A * Math.exp(- (i + istart) * 0.2); iv=alg; }
 			break;
 		case (3):
 			for (int i = 0; i < n; i++) { v[i] = Math.abs(A)+ A * 1/Math.sqrt(i+0.1); iv=alg; }
 			break;
 		case (4):
-			for (int i = 0; i < n; i++) { v[i] = A * (double) i+A; iv=alg; }
+			for (int i = 0; i < n; i++) { v[i] = A * (double) i * (double) i; iv=alg; }
 			break;
 		case (5):
 			for (int i = 0; i < n; i++) { v[i] = A * Math.cos( A * (double) i *0.15 ); iv=alg; }

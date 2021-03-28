@@ -16,6 +16,7 @@ public interface IF_LSM {
 		double DD = x1.sumv2 * x2.sumv2;
 		if (DD == 0 ) return 0;
 		double xx = xy(x1,x2) / Math.sqrt(DD);
+		xx = Math.acos(xx)*180.0/Math.PI;
 		return xx;
 	}
 	
@@ -35,15 +36,14 @@ public interface IF_LSM {
 	}
 	
 	default double[] coef2(MathVector y, MathVector x1, MathVector x2) {
+		double[] lsm = {1,0,-1,1e30};
+		if (y == null || x1 == null || x2 == null) return lsm;
 		double yx1 = xy(y,x1), yx2 = xy(y,x2), sxz = xy(x1,x2);
-		double[] lsm = new double[3];
-		if (x2 == null) { lsm[2] = -1; return lsm; }
 		double D = x1.sumv2 * x2.sumv2 - sxz * sxz;
-		if (Math.abs(D) < EPS) { lsm[2] = -1; return lsm; }
+		if (Math.abs(D) < EPS) return lsm;
 		lsm[0] = (yx1 * x2.sumv2 - sxz * yx2) / D;
 		lsm[1] = (x1.sumv2 * yx2 - sxz * yx1) / D;
 		lsm[2] = detCR(y,x1,x2,lsm[0],lsm[1]);
-		
 		return lsm;
 	}
 	
@@ -52,9 +52,8 @@ public interface IF_LSM {
 	}
 	
 	default double detCR(MathVector y, MathVector x1, MathVector x2, double c1, double c2) {
-		int n = y.n;
 		double s2 = 0.0;
-		for ( int i = 0; i < n; i++) {
+		for ( int i = 0; i < y.n; i++) {
 			double s = (y.v[i] - c1 * x1.v[i] - c2 * x2.v[i]);
 			s2 += s*s;
 		}
@@ -62,14 +61,12 @@ public interface IF_LSM {
 	}
 	
 	default double detCR(MathVector y, MathVector x1, double c1) {
-		int n = y.n;
 		double s2 = 0.0;
-		for ( int i = 0; i < n; i++) {
+		for ( int i = 0; i < y.n; i++) {
 			double s = (y.v[i] - c1 * x1.v[i]);
 			s2 += s*s;
 		}
 		return s2;
 	}
-
 
 }

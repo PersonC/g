@@ -26,7 +26,7 @@ public class zModel implements IF_LSM {
 	
 	public zModel(int m, int f1, String name, GMDH cri) {
 		this.nameModel = name;
-		int f = Math.max(1,Math.min(f1,m));
+		int f = f1; // Math.max(1,Math.min(f1,m));
 		this.m   = m;
 		this.f   = f;
 		this.mxz = m + 1 + f;
@@ -83,16 +83,17 @@ public class zModel implements IF_LSM {
 			int    kz = m1 + k;
 			a[j][kz] = az;
 			z[kz]  = new MathVector(n,  kz);
-			z[kz].runZOne(az, z [j]);
+			z[kz].runZOne(az, z [j]); // c валидацией
 			zd[kz] = new MathVector(nd, kz);
-			zd[kz].runZOne(az, zd[j]);
+			zd[kz].runZOne(az, zd[j]); // c валидацией
 		}
 	}
 
 	public boolean insertCR(double a1, int i, double a2, int j, double crnew) {
-		System.out.println("L="+Lcurrent  + ": "+ iCRmax + 
-				" cr=" + valCRmax + "/" + crnew +
-				" i=" + i + " " + a1 + " j=" + j + " " + a2);
+		System.out.println(
+				"zModel-insertCR L="+Lcurrent  + " ICRmax: "+ iCRmax + 
+				" cr=" + valCRmax + "/ crnew " + crnew + " " + (crnew < valCRmax) +
+				" a[" + i + "]=" + a1 + " a[" + j + "]=" + a2);
 		if (crnew < valCRmax) {
 			cr     [iCRmax] = crnew;
 			aij [0][iCRmax] = a1;
@@ -117,16 +118,12 @@ public class zModel implements IF_LSM {
 	}
 //============================================================
 	public double[] model2(int ii, int jj) {
-		double[] b = new double[4], bb = new double[4];
+		double[] bb = new double[4];
 		double[] c = new double[4];
 		double CRA, CRB;
 // common
-		b = coef2(y, z[ii],z[jj]);
-		c[0] = b[0]; // первый коэффициент 
-		c[1] = b[1]; // второй коэффициент
-		c[2] = b[2]; // внутренний критерий
-		c[3] = 1e30; // внешний критерий
-		if (b[2] == -1) return c;
+		c = coef2(y, z[ii],z[jj]);
+		if (c[2] == -1) return c;
 // 		
 		switch (crit) {
 		case BIASCOEF:
@@ -135,9 +132,9 @@ public class zModel implements IF_LSM {
 			c[3] = Math.abs(c[0]-bb[0]) + Math.abs(c[1]-bb[1]);
 			break;
 		case BIASREG:	
-			bb = coef2(yd, zd[ii],zd[jj]);
-			CRB = detCR(yd,zd[ii],zd[jj],c[0],c[1]);
-			CRA = detCR(y,z[ii],z[jj],bb[0],bb[1]);
+			bb  = coef2(yd,zd[ii],zd[jj]);
+			CRB = detCR(yd,zd[ii],zd[jj], c[0],c[1] );
+			CRA = detCR(y, z[ii], z[jj], bb[0],bb[1]);
 			if (bb[2] == -1) return c;
 			c[3] = Math.abs(CRB / (double) yd.n - CRA / (double) y.n);
 			break;
@@ -154,16 +151,17 @@ public class zModel implements IF_LSM {
 //----------------------------------------------------------------
 	public void generator(boolean printZ, boolean printIteration, int Lmax) {
 		if (printZ) printModel(printZ);
-		do {
-			if (printIteration) printModel(false);
+		do { if (printIteration) printModel(false);
 		} while (genPopulation() && Lcurrent < Lmax);
 	}
 
 	public boolean genPopulation() {
+		int jStart;
 		Lcurrent++;
 		boolean gen = false;
 		for (int j1 = 0; j1 < mxz-1; j1++) {
-			for( int j2 = j1+1; j2 < mxz; j2++) {
+			if (j1 <= m1) jStart = m1+1; else jStart = j1+1;
+			for( int j2 = jStart; j2 < mxz; j2++) {
 				double[] c = model2(j1, j2);
 				boolean is_model = insertCR(c[0], j1, c[1], j2, c[3]); 
 				gen = is_model || gen;
@@ -248,22 +246,46 @@ public class zModel implements IF_LSM {
 	
 	public double[][] matrixR(boolean corr) {
 		double[][] R = new double[m1][m1];
-		for (int i=0; i<m1; i++) {
+		double[][] U = new double[m1][m1];
+		for (int i=1; i<m1; i++) {
 			for (int j=i; j<m1; j++) {
 				if (corr) R[i][j] = corr(z[i], z[j]); else R[i][j] = covar(z[i], z[j]);
+				U[i][j] = cosxy(z[i], z[j]);
 			}
 		}
+		
+		if (corr) R[0][0] = corr(y, y); else R[0][0] = covar(y, y);
+		U[0][0] = cosxy(y, y);
+		for (int j=1; j<m1; j++) {
+			if (corr) R[0][j] = corr(y, z[j]); else R[0][j] = covar(y, z[j]);
+			U[0][j] = cosxy(y, z[j]);
+		}
 		return R;
+	}
+
+	public double[][] matrixU() {
+		double[][] U = new double[m1][m1];
+		for (int i=1; i<m1; i++) {
+			for (int j=i; j<m1; j++) {
+				U[i][j] = cosxy(z[i], z[j]);
+			}
+		}
+		
+		U[0][0] = cosxy(y, y);
+		for (int j=1; j<m1; j++) {
+			U[0][j] = cosxy(y, z[j]);
+		}
+		return U;
 	}
 	
 	public void printMatrixR(boolean corr) {
 		double[][] R = matrixR(corr);
 		String sf;
 		if (corr) {
-			System.out.println("Корреляционная матрица");
+			System.out.println("\nКорреляционная матрица");
 			sf = " %+1.2f";
 		} else {
-			System.out.println("Корреляционная матрица");
+			System.out.println("\nКорреляционная матрица");
 			sf = " %+8e";
 		}
 		for ( int i=0; i<m1; i++) {
@@ -274,6 +296,20 @@ public class zModel implements IF_LSM {
 			System.out.println("\n");
 		}
 	}
+	
+	public void printMatrixU() {
+		double[][] U = matrixU();
+		String sf = " %+05.1f";
+		System.out.println("\nУглы между векторами");
+		for ( int i=0; i<m1; i++) {
+			for ( int j=0; j<m1; j++) {
+				if(i<j) System.out.printf(sf,U[i][j]); 
+				else    System.out.printf(sf,U[j][i]);
+			}
+			System.out.println("\n");
+		}
+	}
+	
 //=========================================================================
 	public void utilityTest(int n, int m) {
 		if (n<1) {
