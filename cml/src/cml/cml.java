@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.util.Date;
 
 public class cml implements IF_LSM {
 //	public static boolean TEST = false;
@@ -14,12 +15,11 @@ public class cml implements IF_LSM {
 		boolean printZ = false, printIteration = true;
         // Create new print stream for file.
         if (PRFILE) System.setOut(new PrintStream(new FileOutputStream(new File("file.txt"))));
-//---------------------integration approach------------------------------
-//		zModel fa = new zModel(m,f,"Обучающая А",GMDH.BIASCOEF);
+System.out.println(new Date());
 //---------------------------------------------------
 		if (TEST) {
 			int na =12, nb =12, ncc   = 5;
-			int mt = 2, ff = 3, Lmaxt = 99859; // mt=6
+			int mt = 2, ff = 6, Lmaxt = 99859; // mt=6
 //			GMDH test = GMDH.LSM; 
 			GMDH test = GMDH.REG; 
 //			GMDH test = GMDH.BIASCOEF;
@@ -27,10 +27,7 @@ public class cml implements IF_LSM {
 
 			zModel ft = new zModel(mt,ff,"Обучающая А",test);
 			ft.utilityTest(na,nb,ncc,mt);
-    		ft.init();
-			ft.printMatrixR(true);
-			ft.printMatrixR(false);
-			ft.printMatrixU();
+			ft.printMatrix();
 			ft.generator(printZ,true,Lmaxt);
 	        ft.printModel(true);
 		} else {
@@ -41,9 +38,7 @@ public class cml implements IF_LSM {
 	        int my = 3;
 	        int[] mx = {2,4,5,6,7};
 	        System.out.println(fa.readData(my,mx));
-			fa.init();
-			fa.printMatrixR(true);
-			fa.printMatrixR(false);
+			fa.printMatrix();
 			fa.generator(printZ,printIteration,Lmax);
 	        fa.printModel(true);
 		}

@@ -46,34 +46,6 @@ public class zModel implements IF_LSM {
 	}
 	
 //===========================================================
-	public void init() {
-		Lcurrent++;
-		for (int j=0; j<m1; j++) {
-			double a1 = coef1(y, z[j]);
-			double CRB1, CRB2, a2;
-			switch(crit) {
-			case BIASCOEF:
-				a2 = coef1(yd, zd[j]);
-				CRB1 = Math.abs(a1-a2);
-				break;
-			case BIASREG:
-				a2 = coef1(yd, zd[j]);
-				CRB1 = detCR(yd,zd[j],a1);
-				CRB2 = detCR(y, z[j], a2);
-				CRB1 = Math.abs(CRB1 / (double) yd.n - CRB2 / (double) y.n);
-				break;
-			case REG:
-				CRB1 = detCR(yd,zd[j], a1);
-				break;
-			case LSM:
-			default:
-				CRB1 = detCR(y,z[j],a1);
-				break;
-			}
-			insertCR(a1, j, 0.0, -2, CRB1);
-		}
-		set_coef0();
-	}
 
 	public void set_coef0() {
 		int n = y.n, nd = yd.n;
@@ -84,8 +56,11 @@ public class zModel implements IF_LSM {
 			a[j][kz] = az;
 			z[kz]  = new MathVector(n,  kz);
 			z[kz].runZOne(az, z [j]); // c валидацией
+//			System.out.println(kz + "z ");
+//			z[kz].printVector();
 			zd[kz] = new MathVector(nd, kz);
 			zd[kz].runZOne(az, zd[j]); // c валидацией
+			zd[kz].printVector();
 		}
 	}
 
@@ -117,32 +92,87 @@ public class zModel implements IF_LSM {
 		iCRmax = imax; valCRmax = maxCR;
 	}
 //============================================================
+//	public void init() {
+//		Lcurrent++;
+//
+//		//---------
+//		double[] bb = new double[4];
+//		double[] c = new double[4];
+//		double CRA, CRB;
+//        //---------
+//		
+//		for (int j=0; j<m1; j++) {
+//			double a1 = coef1(y, z[j]);
+//			double CRB1, CRB2, a2;
+//			switch(crit) {
+//			case BIASCOEF:
+//				a2 = coef1(yd, zd[j]);
+//				CRB1 = Math.abs(a1-a2);
+//				break;
+//			case BIASREG:
+//				a2 = coef1(yd, zd[j]);
+//				CRB1 = detCR(yd,zd[j],a1);
+//				CRB2 = detCR(y, z[j], a2);
+//				CRB1 = Math.abs(CRB1 / (double) yd.n - CRB2 / (double) y.n);
+//				break;
+//			case REG:
+//
+//				c = coef(y, z[j],null,Lcurrent);
+////				if (c[2] == -1) return c;
+//				c[3] = CR(yd,zd[j],null,c[0],c[1],Lcurrent);
+//				CRB1 = c[3];
+//				
+////				CRB1 = detCR(yd,zd[j], a1);
+//				break;
+//			case REGB:
+//				a1 = coef1(yd, zd[j]);
+//				CRB1 = detCR(y, z[j], a1);
+//				break;
+//			case LSM:
+//			default:
+//				CRB1 = detCR(y,z[j],a1);
+//				break;
+//			}
+//			insertCR(a1, j, 0.0, -2, CRB1);
+//		}
+//		set_coef0();
+//	}
+
 	public double[] model2(int ii, int jj) {
 		double[] bb = new double[4];
-		double[] c = new double[4];
-		double CRA, CRB;
-// common
-		c = coef2(y, z[ii],z[jj]);
-		if (c[2] == -1) return c;
-// 		
+		double[] c  = new double[4];
+		double   CRA, CRB;
 		switch (crit) {
 		case BIASCOEF:
-			bb = coef2(yd, zd[ii],zd[jj]);
+			c = coef(y, z[ii],z[jj],Lcurrent);
+			if (c[2] == -1) return c;
+			bb = coef(yd, zd[ii],zd[jj],Lcurrent);
 			if (bb[2] == -1) return c;
 			c[3] = Math.abs(c[0]-bb[0]) + Math.abs(c[1]-bb[1]);
 			break;
 		case BIASREG:	
-			bb  = coef2(yd,zd[ii],zd[jj]);
-			CRB = detCR(yd,zd[ii],zd[jj], c[0],c[1] );
-			CRA = detCR(y, z[ii], z[jj], bb[0],bb[1]);
+			c = coef(y, z[ii],z[jj],Lcurrent);
+			if (c[2] == -1) return c;
+			bb  = coef(yd,zd[ii],zd[jj],Lcurrent);
 			if (bb[2] == -1) return c;
+			CRB = CR(yd,zd[ii],zd[jj], c[0],c[1] ,Lcurrent);
+			CRA = CR(y, z[ii], z[jj], bb[0],bb[1],Lcurrent);
 			c[3] = Math.abs(CRB / (double) yd.n - CRA / (double) y.n);
 			break;
 		case REG:
-			c[3] = detCR(yd,zd[ii],zd[jj],c[0],c[1]);
+			c = coef(y, z[ii],z[jj],Lcurrent);
+			if (c[2] == -1) return c;
+			c[3] = CR(yd,zd[ii],zd[jj],c[0],c[1],Lcurrent);
+			break;
+		case REGB:
+			c = coef(yd, zd[ii],zd[jj],Lcurrent);
+			if (c[2] == -1) return c;
+			c[3] = CR(y,z[ii],z[jj],c[0],c[1],Lcurrent);
 			break;
 		case LSM:
 		default:
+			c = coef(y, z[ii],z[jj],Lcurrent);
+			if (c[2] == -1) return c;
 			c[3] = c[2];
 			break;
 		}
@@ -150,17 +180,28 @@ public class zModel implements IF_LSM {
 	}
 //----------------------------------------------------------------
 	public void generator(boolean printZ, boolean printIteration, int Lmax) {
+		gen0();
 		if (printZ) printModel(printZ);
 		do { if (printIteration) printModel(false);
 		} while (genPopulation() && Lcurrent < Lmax);
 	}
 
+	public void gen0() {
+		Lcurrent++;
+		for (int j1 = 0; j1 < m1; j1++) {
+			double[] c = model2(j1, j1);
+			insertCR(c[0], j1, 0.0, -2, c[3]); 
+		}
+		set_coef0();
+	}
+	
+	
 	public boolean genPopulation() {
 		int jStart;
 		Lcurrent++;
 		boolean gen = false;
 		for (int j1 = 0; j1 < mxz-1; j1++) {
-			if (j1 <= m1) jStart = m1+1; else jStart = j1+1;
+			if (j1 < m1) jStart = m1; else jStart = j1+1;
 			for( int j2 = jStart; j2 < mxz; j2++) {
 				double[] c = model2(j1, j2);
 				boolean is_model = insertCR(c[0], j1, c[1], j2, c[3]); 
@@ -191,14 +232,8 @@ public class zModel implements IF_LSM {
 					double anew = a1 * old[j][k1] + a2 * old[j][k2];
 					a[j][kz] = anew;
 					// recalc z, zd [kz]
-					if (j == 0) {
-						z [kz].addFirst (anew, z [j]);
-						zd[kz].addFirst (anew, zd[j]);
-					}
-					else {
-						z [kz].addSecond(anew, z [j]);
-						zd[kz].addSecond(anew, zd[j]);
-					}
+					z [kz].addV(anew, z [j], j);
+					zd[kz].addV(anew, zd[j], j);
 				}
 				z[kz].valuation(); zd[kz].valuation();
 			}
@@ -266,16 +301,17 @@ public class zModel implements IF_LSM {
 	public double[][] matrixU() {
 		double[][] U = new double[m1][m1];
 		for (int i=1; i<m1; i++) {
-			for (int j=i; j<m1; j++) {
-				U[i][j] = cosxy(z[i], z[j]);
-			}
+			for (int j=i; j<m1; j++) { U[i][j] = cosxy(z[i], z[j]); }
 		}
-		
 		U[0][0] = cosxy(y, y);
-		for (int j=1; j<m1; j++) {
-			U[0][j] = cosxy(y, z[j]);
-		}
+		for (int j=1; j<m1; j++) { U[0][j] = cosxy(y, z[j]); }
 		return U;
+	}
+	
+	public void printMatrix() {
+		printMatrixR(true);
+		printMatrixR(false);
+		printMatrixU();
 	}
 	
 	public void printMatrixR(boolean corr) {
@@ -285,7 +321,7 @@ public class zModel implements IF_LSM {
 			System.out.println("\nКорреляционная матрица");
 			sf = " %+1.2f";
 		} else {
-			System.out.println("\nКорреляционная матрица");
+			System.out.println("\nКовариационная матрица");
 			sf = " %+8e";
 		}
 		for ( int i=0; i<m1; i++) {

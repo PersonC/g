@@ -21,14 +21,19 @@ public class MathVector {
 		for (int i = 0; i < n; i++) { v[i] = yv; }
 		valuation();
 	}
+	
+	public void addV(double a, MathVector x, int j) {
+		if (j==0) addFirst(a,x);
+		else addSecond(a,x);
+	}
 
 	
-	public void addFirst(double a, MathVector x) {
+	private void addFirst(double a, MathVector x) {
 		for (int i=0; i<n; i++) { 
 			if (a ==0) v[i]=0; else v[i] = a * x.v[i]; }
 	}
 
-	public void addSecond(double a, MathVector x) {
+	private void addSecond(double a, MathVector x) {
 		if (a == 0) return;
 		for (int i=0; i<n; i++) { v[i] += a * x.v[i]; }
 	}
