@@ -20,9 +20,11 @@ public class zModel implements IF_LSM {
 	
 	public int    ij_z[][]; // [2][f] first factor, second factor
 	public double aij [][];
+	public double muy = 0.5;
 	
 	private String nameModel;
-	private GMDH crit;
+	protected GMDH crit;
+	private double a1,a2,CRvalue;
 	
 	public zModel(int m, int f1, String name, GMDH cri) {
 		this.nameModel = name;
@@ -46,25 +48,25 @@ public class zModel implements IF_LSM {
 	}
 	
 //===========================================================
-
 	public void set_coef0() {
-		int n = y.n, nd = yd.n;
 		for (int k=0; k<f; k++) {
 			int     j = ij_z[0][k];
 			double az = aij [0][k];
 			int    kz = m1 + k;
 			a[j][kz] = az;
-			z[kz]  = new MathVector(n,  kz);
+			z[kz]  = new MathVector(y.n,  kz);
 			z[kz].runZOne(az, z [j]); // c валидацией
 //			System.out.println(kz + "z ");
 //			z[kz].printVector();
-			zd[kz] = new MathVector(nd, kz);
-			zd[kz].runZOne(az, zd[j]); // c валидацией
-			zd[kz].printVector();
+			if ( crit != GMDH.LSM ) {
+				zd[kz] = new MathVector(yd.n, kz);
+				zd[kz].runZOne(az, zd[j]); // c валидацией
+				zd[kz].printVector();
+			}
 		}
 	}
 
-	public boolean insertCR(double a1, int i, double a2, int j, double crnew) {
+	public int insertCR(double a1, int i, double a2, int j, double crnew) {
 		System.out.println(
 				"zModel-insertCR L="+Lcurrent  + " ICRmax: "+ iCRmax + 
 				" cr=" + valCRmax + "/ crnew " + crnew + " " + (crnew < valCRmax) +
@@ -77,8 +79,8 @@ public class zModel implements IF_LSM {
 			ij_z[1][iCRmax] = j; 
 			L      [iCRmax] = Lcurrent;
 			detMinCr1();
-			return true;
-		} else return false;
+			return 1;
+		} else return 0;
 	}
 	
 	public void detMinCr1() {
@@ -91,124 +93,109 @@ public class zModel implements IF_LSM {
 		}
 		iCRmax = imax; valCRmax = maxCR;
 	}
-//============================================================
-//	public void init() {
-//		Lcurrent++;
-//
-//		//---------
-//		double[] bb = new double[4];
-//		double[] c = new double[4];
-//		double CRA, CRB;
-//        //---------
-//		
-//		for (int j=0; j<m1; j++) {
-//			double a1 = coef1(y, z[j]);
-//			double CRB1, CRB2, a2;
-//			switch(crit) {
-//			case BIASCOEF:
-//				a2 = coef1(yd, zd[j]);
-//				CRB1 = Math.abs(a1-a2);
-//				break;
-//			case BIASREG:
-//				a2 = coef1(yd, zd[j]);
-//				CRB1 = detCR(yd,zd[j],a1);
-//				CRB2 = detCR(y, z[j], a2);
-//				CRB1 = Math.abs(CRB1 / (double) yd.n - CRB2 / (double) y.n);
-//				break;
-//			case REG:
-//
-//				c = coef(y, z[j],null,Lcurrent);
-////				if (c[2] == -1) return c;
-//				c[3] = CR(yd,zd[j],null,c[0],c[1],Lcurrent);
-//				CRB1 = c[3];
-//				
-////				CRB1 = detCR(yd,zd[j], a1);
-//				break;
-//			case REGB:
-//				a1 = coef1(yd, zd[j]);
-//				CRB1 = detCR(y, z[j], a1);
-//				break;
-//			case LSM:
-//			default:
-//				CRB1 = detCR(y,z[j],a1);
-//				break;
-//			}
-//			insertCR(a1, j, 0.0, -2, CRB1);
-//		}
-//		set_coef0();
-//	}
 
-	public double[] model2(int ii, int jj) {
-		double[] bb = new double[4];
-		double[] c  = new double[4];
-		double   CRA, CRB;
+	public boolean model2(int ii, int jj) {
+		double[] bb = new double[2];
+		double[] c  = new double[2];
 		switch (crit) {
+		case BIAS_REG:
+			c = coef(y, z[ii],z[jj],Lcurrent);
+			a1 = c[0]; a2 = c[1];
+			if (a1 == 0 && a2 == 0) return false;
+			bb  = coef(yd,zd[ii],zd[jj],Lcurrent);
+			if (bb[0] == 0 && bb[1] == 0) return false;
+			if (Lcurrent > 1) CRvalue = detCR(z[ii], zd[ii], a1, bb[0]);
+			else CRvalue = detCR(z[ii], zd[ii], z[jj], zd[jj], a1, a2, bb[0], bb[1]);
+			CRvalue = CRvalue + muy * (
+					  CR(yd,zd[ii],zd[jj], a1,   a2,   Lcurrent) +
+					  CR(y, z[ii], z[jj],  bb[0],bb[1],Lcurrent)  );
+			break;
+		case BIAS: // ||ym(A)-ym(B)||
+			c = coef(y, z[ii],z[jj],Lcurrent);
+			a1 = c[0]; a2 = c[1];
+			if (a1 == 0 && a2 == 0) return false;
+			bb  = coef(yd,zd[ii],zd[jj],Lcurrent);
+			if (bb[0] == 0 && bb[1] == 0) return false;
+			if (Lcurrent > 1) CRvalue = detCR(z[ii], zd[ii], a1, bb[0]);
+			else CRvalue = detCR(z[ii], zd[ii], z[jj], zd[jj], a1, a2, bb[0], bb[1]);
+			break;
+		case REG_AB:	
+			c = coef(y, z[ii],z[jj],Lcurrent);
+			a1 = c[0]; a2 = c[1];
+			if (a1 == 0 && a2 == 0) return false;
+			bb  = coef(yd,zd[ii],zd[jj],Lcurrent);
+			if (bb[0] == 0 && bb[1] == 0) return false;
+			CRvalue = CR(yd,zd[ii],zd[jj], a1,   a2   ,Lcurrent) +
+			          CR(y, z[ii] , z[jj], bb[0],bb[1],Lcurrent);
+			break;
 		case BIASCOEF:
 			c = coef(y, z[ii],z[jj],Lcurrent);
-			if (c[2] == -1) return c;
+			a1 = c[0]; a2 = c[1];
+			if (a1 == 0 && a2 == 0) return false;
 			bb = coef(yd, zd[ii],zd[jj],Lcurrent);
-			if (bb[2] == -1) return c;
-			c[3] = Math.abs(c[0]-bb[0]) + Math.abs(c[1]-bb[1]);
-			break;
-		case BIASREG:	
-			c = coef(y, z[ii],z[jj],Lcurrent);
-			if (c[2] == -1) return c;
-			bb  = coef(yd,zd[ii],zd[jj],Lcurrent);
-			if (bb[2] == -1) return c;
-			CRB = CR(yd,zd[ii],zd[jj], c[0],c[1] ,Lcurrent);
-			CRA = CR(y, z[ii], z[jj], bb[0],bb[1],Lcurrent);
-			c[3] = Math.abs(CRB / (double) yd.n - CRA / (double) y.n);
+			if (bb[0] == 0 && bb[1] == 0) return false;
+			CRvalue = Math.abs(a1-bb[0]) + Math.abs(a2-bb[1]);
 			break;
 		case REG:
 			c = coef(y, z[ii],z[jj],Lcurrent);
-			if (c[2] == -1) return c;
-			c[3] = CR(yd,zd[ii],zd[jj],c[0],c[1],Lcurrent);
+			a1 = c[0]; a2 = c[1];
+			if (a1 == 0 && a2 == 0) return false;
+			CRvalue = CR(yd,zd[ii],zd[jj],a1,a2,Lcurrent);
 			break;
 		case REGB:
 			c = coef(yd, zd[ii],zd[jj],Lcurrent);
-			if (c[2] == -1) return c;
-			c[3] = CR(y,z[ii],z[jj],c[0],c[1],Lcurrent);
+			a1 = c[0]; a2 = c[1];
+			if (a1 == 0 && a2 == 0) return false;
+			CRvalue = CR(y,z[ii],z[jj],a1,a2,Lcurrent);
+			break;
+		case REGCOS:
+			c = coef(y, z[ii],z[jj],Lcurrent);
+			a1 = c[0]; a2 = c[1];
+			if (a1 == 0 && a2 == 0) return false;
+			CRvalue = CRcos(yd,zd[ii],zd[jj],a1,a2,Lcurrent);
+			break;
+		case REGCOSB:
+			c = coef(yd, zd[ii],zd[jj],Lcurrent);
+			a1 = c[0]; a2 = c[1];
+			if (a1 == 0 && a2 == 0) return false;
+			CRvalue = CRcos(y,z[ii],z[jj],a1,a2,Lcurrent);
 			break;
 		case LSM:
 		default:
 			c = coef(y, z[ii],z[jj],Lcurrent);
-			if (c[2] == -1) return c;
-			c[3] = c[2];
+			a1 = c[0]; a2 = c[1];
+			if (a1 == 0 && a2 == 0) return false;
+			CRvalue = CR(y,z[ii],z[jj],a1,a2,Lcurrent);
 			break;
 		}
-		return c;
+		return true;
 	}
 //----------------------------------------------------------------
 	public void generator(boolean printZ, boolean printIteration, int Lmax) {
 		gen0();
 		if (printZ) printModel(printZ);
 		do { if (printIteration) printModel(false);
-		} while (genPopulation() && Lcurrent < Lmax);
+		} while (genPopulation()>0 && Lcurrent < Lmax);
 	}
 
 	public void gen0() {
 		Lcurrent++;
 		for (int j1 = 0; j1 < m1; j1++) {
-			double[] c = model2(j1, j1);
-			insertCR(c[0], j1, 0.0, -2, c[3]); 
+			if (model2(j1, j1)) insertCR(a1, j1, 0.0, -2, CRvalue); 
 		}
 		set_coef0();
 	}
 	
-	
-	public boolean genPopulation() {
-		int jStart;
+	public int genPopulation() {
+		int jStart, gen = 0;
 		Lcurrent++;
-		boolean gen = false;
 		for (int j1 = 0; j1 < mxz-1; j1++) {
 			if (j1 < m1) jStart = m1; else jStart = j1+1;
 			for( int j2 = jStart; j2 < mxz; j2++) {
-				double[] c = model2(j1, j2);
-				boolean is_model = insertCR(c[0], j1, c[1], j2, c[3]); 
-				gen = is_model || gen;
+				if ( model2(j1, j2) ) gen += insertCR(a1, j1, a2, j2, CRvalue); 
 			}
 		}
-		if (gen) set_coef2();
+		if (gen > 0) set_coef2();
 		return gen;
 	}
 
@@ -221,28 +208,50 @@ public class zModel implements IF_LSM {
 			}
 		}
 		// recalc a, z, zd
-		for (int k=0; k<f; k++) {
-			if ( L[k] == Lcurrent ) {
-				int kz = m1 + k;
-				int k1 = ij_z[0][k];
-				double a1 = aij[0][k];
-				int k2 = ij_z[1][k];
-				double a2 = aij[1][k];
-				for (int j=0; j < m1; j++) {
-					double anew = a1 * old[j][k1] + a2 * old[j][k2];
-					a[j][kz] = anew;
-					// recalc z, zd [kz]
-					z [kz].addV(anew, z [j], j);
-					zd[kz].addV(anew, zd[j], j);
+		if (crit != GMDH.LSM) {
+			for (int k=0; k<f; k++) {
+				if ( L[k] == Lcurrent ) {
+					int kz = m1 + k;
+					int k1 = ij_z[0][k];
+					double a1 = aij[0][k];
+					int k2 = ij_z[1][k];
+					double a2 = aij[1][k];
+					for (int j=0; j < m1; j++) {
+						double anew = a1 * old[j][k1] + a2 * old[j][k2];
+						a[j][kz] = anew;
+						// recalc z, zd [kz]
+						z [kz].addV(anew, z [j], j);
+						zd[kz].addV(anew, zd[j], j);
+					}
+					z[kz].valuation(); 
+					zd[kz].valuation();
 				}
-				z[kz].valuation(); zd[kz].valuation();
+			}
+		} else {
+			for (int k=0; k<f; k++) {
+				if ( L[k] == Lcurrent ) {
+					int kz = m1 + k;
+					int k1 = ij_z[0][k];
+					double a1 = aij[0][k];
+					int k2 = ij_z[1][k];
+					double a2 = aij[1][k];
+					for (int j=0; j < m1; j++) {
+						double anew = a1 * old[j][k1] + a2 * old[j][k2];
+						a[j][kz] = anew;
+						// recalc z, zd [kz]
+						z [kz].addV(anew, z [j], j);
+//						zd[kz].addV(anew, zd[j], j);
+					}
+					z[kz].valuation(); 
+//					zd[kz].valuation();
+				}
 			}
 		}
 	}
 //----------------------------------------------------------------
 	public void printModel(boolean pZ) {
 		
-		System.out.println("\nModel " + nameModel + " Критерий " + crit);
+		System.out.println("\nModel " + nameModel + " Критерий " + crit + ": " + nameGMDH[ crit.ordinal()]);
 		if (pZ) {
 			System.out.println("\nПараметры обучающей выборки");
 			if (y != null) y.printVector();
@@ -251,19 +260,21 @@ public class zModel implements IF_LSM {
 				if (z[i] != null) z[i].printVector();
 				else System.out.println("Отсутствует фактор " + i);
 			}
-			System.out.println("Параметры проверяющей выборки");
-			if (yd != null) yd.printVector();
-			else System.out.println("Отсутствует y");
-			for (int i=0; i<mxz; i++) {
-				if (zd[i] != null) zd[i].printVector();
-				else System.out.println("Отсутствует фактор " + i);
-			}
-			System.out.println("Параметры экзаменационной выборки");
-			if (yc != null) yc.printVector();
-			else System.out.println("Отсутствует y");
-			for (int i=0; i<m1; i++) {
-				if (zc[i] != null) zc[i].printVector();
-				else System.out.println("Отсутствует фактор " + i);
+			if (crit != GMDH.LSM) {
+				System.out.println("Параметры проверяющей выборки");
+				if (yd != null) yd.printVector();
+				else System.out.println("Отсутствует y");
+				for (int i=0; i<mxz; i++) {
+					if (zd[i] != null) zd[i].printVector();
+					else System.out.println("Отсутствует фактор " + i);
+				}
+				System.out.println("Параметры экзаменационной выборки");
+				if (yc != null) yc.printVector();
+				else System.out.println("Отсутствует y");
+				for (int i=0; i<m1; i++) {
+					if (zc[i] != null) zc[i].printVector();
+					else System.out.println("Отсутствует фактор " + i);
+				}
 			}
 		} else {
 			System.out.println("\nИтерация " + Lcurrent + " max СR[" + iCRmax + "]=" + valCRmax);
@@ -346,63 +357,6 @@ public class zModel implements IF_LSM {
 		}
 	}
 	
-//=========================================================================
-	public void utilityTest(int n, int m) {
-		if (n<1) {
-			System.out.println("Не верный объем обучающей выборки " + n);
-			return;
-		}
-		y = new MathVector(n,-1); y.oneVector(2);
-		// единичный вектор с валидацией
-		z[0] = new MathVector(n,0); z[0].oneVector();
-		// нетривиальные факторы
-		for (int j=1; j<=m; j++) {
-			z[j] = new MathVector(n,j);
-			z[j].test(j, 3, 0);
-			z[j].valuation();
-			for (int i=0; i<y.n; i++) y.v[i]+=z[j].v[i]*(double)j;
-		}
-		y.valuation();
-	}
-	
-	public void utilityTest(int n, int nd, int m) {
-		if (nd<1) {
-			System.out.println("Не задан объем проверочной выборки " + nd);
-			return;
-		}
-		utilityTest(n,m);
-		yd = new MathVector(nd,-1); yd.oneVector(2);
-		// единичный вектор с валидацией
-		zd[0] = new MathVector(nd,0); zd[0].oneVector();
-		// нетривиальные факторы
-		for (int j=1; j<=m; j++) {
-			zd[j] = new MathVector(nd,j);
-			zd[j].test(j, 3, n);
-			zd[j].valuation();
-			for (int i=0; i<yd.n; i++) yd.v[i]+=zd[j].v[i]*(double)j;
-		}
-		yd.valuation();
-	}
-	
-	public void utilityTest(int n, int nd, int nc, int m) {
-		if (nc<1) {
-			System.out.println("Не верный объем экзаменационной выборки " + nc);
-			return;
-		}
-		utilityTest(n,nd, m);
-		yc = new MathVector(nc,-1); yc.oneVector(2);
-		// единичный вектор с валидацией
-		zc[0] = new MathVector(nc,0); zc[0].oneVector();
-		// нетривиальные факторы
-		for (int j=1; j<=m; j++) {
-			zc[j] = new MathVector(nc,j);
-			zc[j].test(j, 3, n+nd);
-			zc[j].valuation();
-			for (int i=0; i<yc.n; i++) yc.v[i]+=zc[j].v[i]*(double)j;
-		}
-		yc.valuation();
-	}
-	
 	public void createData(int n, int nd, int nc) {
 		if (n>0) {
 			y = new MathVector(n, -1);
@@ -419,6 +373,11 @@ public class zModel implements IF_LSM {
 			for (int j=0; j<m1; j++) { zc[j] = new MathVector(nc, j); }
 			zc[0].oneVector();
 		}
+	}
+	
+	public String readData(int na, int nb, int nc, int my, int mx[]) throws FileNotFoundException {
+		createData(na, nb, nc);
+		return readData(my, mx);
 	}
 	
 	public String readData(int my, int mx[]) throws FileNotFoundException {

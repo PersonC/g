@@ -3,13 +3,21 @@ package cml;
 public class MathVector {
 	public int      iv,n;
 	public double[] v;
-	public double   vmin = 1e30, vmax = -1e-30, vAverage = 0, sumv2 = 0, D = 0;
+	public double   vmin = 1e30, vmax = -1e-30, vAverage = 0, sumv2 = 0, D = 0, norma = 0;
 	public boolean  artifical = false;
 
 	public MathVector(int n, int iv) {
 		this.n  = n;
 		this.v  = new double[n];
 		this.iv = iv;
+	}
+	
+	public MathVector(MathVector x1, MathVector x2) {
+		this.n = x1.n + x2.n;
+		this.iv = x1.iv + x2.iv * 1000;
+		this.v = new double[n];
+		for (int i=0; i<x1.n; i++) v[i] = x1.v[i];
+		for (int i=x1.n, j=0; j<x2.n; i++, j++) v[i] = x2.v[j];
 	}
 
 	public void oneVector( ) {
@@ -48,6 +56,7 @@ public class MathVector {
 		}
 		vAverage /= (double) n;
 		D = sumv2 / (double) n - vAverage * vAverage;
+		norma = Math.sqrt(sumv2);
 	}
 	
 	public void runZOne(double a, MathVector x) {
@@ -56,42 +65,6 @@ public class MathVector {
 		valuation();
 	}
 
-	public void test(int alg, double A, double istart) {
-// 0 - константа
-// 1 - случайное число * А
-// 2 - линейная функция х
-// 3 - линейная фунция * А * случайное число
-// 4 - ехр ( А * случайное число )
-// 5 - cos ( А * случайное число )
-// 6... - 100 * случайное число * случайное число		
-		artifical = true;
-		switch (alg) {
-		case (1):
-			for (int i = 0; i < n; i++) { v[i] = A * ((double) i + istart);	iv=alg; }
-			break;
-		case (2):
-			for (int i = 0; i < n; i++) { v[i] = A * Math.exp(- (i + istart) * 0.2); iv=alg; }
-			break;
-		case (3):
-			for (int i = 0; i < n; i++) { v[i] = Math.abs(A)+ A * 1/Math.sqrt(i+0.1); iv=alg; }
-			break;
-		case (4):
-			for (int i = 0; i < n; i++) { v[i] = A * (double) i * (double) i; iv=alg; }
-			break;
-		case (5):
-			for (int i = 0; i < n; i++) { v[i] = A * Math.cos( A * (double) i *0.15 ); iv=alg; }
-			break;
-		case (6):
-			for (int i = 0; i < n; i++) { v[i] = -A * Math.log(Math.abs(A) + i +1) / (double) (A+i-9.5); iv=alg;	}
-			break;
-			
-		default:
-			for (int i = 0; i < n; i++) { v[i] = A * i * Math.random() * Math.random(); iv=alg; }
-			break;
-		}
-	    valuation();
-	}
-	
 	public void printVector() {
 		System.out.println("Фактор " + iv);
 		for (int i = 0; i < n; i++) {

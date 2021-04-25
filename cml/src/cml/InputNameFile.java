@@ -1,9 +1,12 @@
 package cml;
 
+import java.awt.FileDialog;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Scanner;
+
+import javax.swing.JFrame;
 
 public class InputNameFile {
 	public int line = 0;
@@ -14,10 +17,11 @@ public class InputNameFile {
 	private boolean openfr = false;
 
 	InputNameFile() {
-		Scanner Inpt = new Scanner(System.in);
-		System.out.println("What is name of file?");
-		this.nameFile = Inpt.next();
-		Inpt.close();
+//		Scanner Inpt = new Scanner(System.in);
+//		System.out.println("What is name of file?");
+//		this.nameFile = Inpt.next();
+//		Inpt.close();
+		this.nameFile = openFile();
 	}
 	
 	InputNameFile(String nameFile) {
@@ -69,6 +73,15 @@ public class InputNameFile {
 				System.out.println("fr.close " + e);
 			};
 		}
+	}
+	public String openFile() {
+		
+		JFrame shell = new JFrame();
+		FileDialog fDia = new FileDialog(shell, "Open file with data", FileDialog.LOAD);
+		fDia.setVisible(true);
+        String name = fDia.getDirectory()+fDia.getFile();
+        shell.dispose();
+        return(name);
 	}
 	
 }
