@@ -56,7 +56,6 @@ public interface IF_LSM {
 		if (Math.abs(D) < EPS) return lsm;
 		lsm[0] = (yx1 * x2.sumv2 - sxz * yx2) / D;
 		lsm[1] = (x1.sumv2 * yx2 - sxz * yx1) / D; 
-//		System.out.println("coef " + x1.iv + "-" + x2.iv + " D=" + D + " a1=" + lsm[0] + " a2=" + lsm[1]);
 		return lsm;
 	}
 
@@ -65,13 +64,7 @@ public interface IF_LSM {
 		if (y == null || x == null) return lsm;
 		lsm[0] = (x.vAverage == 0) ? 0 : y.vAverage / x.vAverage;
 		lsm[1] = 0; 
-//		System.out.println("coef " + x1.iv + "-" + x2.iv + " D=" + D + " a1=" + lsm[0] + " a2=" + lsm[1]);
 		return lsm;
-	}
-	
-	default double[] coef(MathVector y, MathVector x1, MathVector x2, int Lc) {
-		if (Lc <=1 ) return coef2(y,x1);
-		return coef2(y,x1,x2);
 	}
 	
 	default double detCR(MathVector y, MathVector x1, MathVector x2, double c1, double c2) {
@@ -89,6 +82,7 @@ public interface IF_LSM {
 		}
 		return s2;
 	}
+	
 //---- сравнение моделей
 	default double detCR(MathVector z1, MathVector z1d, 
 			             MathVector z2, MathVector z2d, 
@@ -171,5 +165,14 @@ public interface IF_LSM {
 //		}
 //		return s2;
 //	}
-
+	
+	default double roundAvoid(double value, int places) {
+	    double scale = Math.pow(10, places);
+	    return Math.round(value * scale) / scale;
+	}	
+	
+	default double roundHalf(double value, int places) {
+	    double scale = Math.pow(10, places);
+	    return  Math.floor(value * scale +.5)/scale;
+	}
 }

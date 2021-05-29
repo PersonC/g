@@ -11,7 +11,7 @@ public class cml implements IF_LSM {
 	public static boolean PRFILE = true;
 	
 	public static void main(String[] args) throws FileNotFoundException {
-		boolean printZ = false, printIteration = true;
+		boolean printZ = false, printIteration = false;
         // Create new print stream for file.
         if (PRFILE) System.setOut(new PrintStream(new FileOutputStream(new File("file.txt"))));
         
@@ -19,30 +19,37 @@ public class cml implements IF_LSM {
 //---------------------------------------------------
 		if (TEST) {
 			int mt = 2, ff = 6, Lmaxt = 99859;
-//			GMDH test = GMDH.LSM; 
-//			GMDH test = GMDH.REG; 
-			GMDH test = GMDH.REGCOS; 
-//			GMDH test = GMDH.BIASCOEF;
-//			GMDH test = GMDH.BIAS_REG; 
-//			GMDH test = GMDH.BIAS; 
+			GMDH t0 = GMDH.LSM; 
+			GMDH t1 = GMDH.REG; 
+			GMDH t2 = GMDH.REGB; 
+			GMDH t3 = GMDH.REG_AB;
+			GMDH t4 = GMDH.REGCOS; 
+			GMDH t5 = GMDH.REGCOSB;
+			GMDH t6 = GMDH.BIAS_REG; 
+			GMDH t7 = GMDH.BIAS; 
+			GMDH t8 = GMDH.BIASCOEF;
 
-			zModel ft = new zModel(mt,ff,"Обучающая А",test);
-//			int na =12, nb =12, ncc   = 5;
+			zModel ft = new zModel(mt,ff,"Обучающая А",t2);
 			new TestCml(ft);
-			ft.printMatrix();
-			ft.generator(printZ,true,Lmaxt);
-	        ft.printModel(true);
+			ft.setScale(false, null);
+			new putTable(ft);
+//			ft.printMatrix();
+			ft.generator(printIteration,Lmaxt);
+			ft.revertScaleY();
+			new putTable(ft,0);
+			ft.bestModel();
+	        ft.printModel();
 		} else {
 			int m = 5, f = 2, Lmax = 19;
 			zModel fa = new zModel(m,f,"Обучающая А",GMDH.BIASCOEF);
 			int n = 12, nd = 10, nc = 5;
-//	        fa.createData(n, nd, nc);
 	        int my = 3;
 	        int[] mx = {2,4,5,6,7};
 	        System.out.println(fa.readData(n,nd,nc,my,mx));
 			fa.printMatrix();
-			fa.generator(printZ,printIteration,Lmax);
-	        fa.printModel(true);
+			fa.generator(printIteration,Lmax);
+			fa.bestModel();
+	        fa.printModel();
 		}
 	}
 }

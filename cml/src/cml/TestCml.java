@@ -6,7 +6,7 @@ public class TestCml  implements IF_LSM  {
 	
 	public TestCml(zModel z, int na, int nb, int nc) {
 		this.z = z;
-		this.na = na; this.nb=12; this.nc = nc;
+		this.na = na; this.nb=nb; this.nc = nc;
 		utilityTest(na, nb, nc, z.m);
 	}
 	public TestCml(zModel z) {
