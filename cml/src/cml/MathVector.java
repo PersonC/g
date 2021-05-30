@@ -5,7 +5,7 @@ public class MathVector {
 	public double[] v;
 	public double   vmin = 1e30, vmax = -1e-30, vAverage = 0, sumv2 = 0, D = 0, norma = 0;
 	public boolean  artifical = false;
-	public double scale = 1; // vector = vector / scale
+	public double   scale = 1; // vector = vector / scale
 	
 	public void makeScale(double scale) {
 		if(Math.abs(scale) < Math.ulp(10) || scale == 1) return;

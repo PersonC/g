@@ -29,7 +29,7 @@ public class cml implements IF_LSM {
 			GMDH t7 = GMDH.BIAS; 
 			GMDH t8 = GMDH.BIASCOEF;
 
-			zModel ft = new zModel(mt,ff,"Обучающая А",t2);
+			zModel ft = new zModel(mt,ff,"Обучающая А",t7);
 			new TestCml(ft);
 			ft.setScale(false, null);
 			new putTable(ft);
@@ -39,6 +39,8 @@ public class cml implements IF_LSM {
 			new putTable(ft,0);
 			ft.bestModel();
 	        ft.printModel();
+	        Estimate es = new Estimate();
+	        es.calcEps2(ft);
 		} else {
 			int m = 5, f = 2, Lmax = 19;
 			zModel fa = new zModel(m,f,"Обучающая А",GMDH.BIASCOEF);

@@ -137,6 +137,10 @@ public class zModel implements IF_LSM {
 			lsm[0] = roundAvoid(lsm[0],CG.round_a2);
 			lsm[1] = roundAvoid(lsm[1],CG.round_a2);
 		}
+		if (CG.isRoundLastCoef2) {
+			lsm[0] = roundLast(lsm[0],CG.r_a2);
+			lsm[1] = roundLast(lsm[1],CG.r_a2);
+		}
 		return lsm;
 	}
 
@@ -146,9 +150,11 @@ public class zModel implements IF_LSM {
 
 		switch (crit) {
 			case BIAS_REG:
-			case BIAS: 
 			case REG_AB:	
 			case BIASCOEF:
+			case BIAS: 
+				b = coef(yd,zd[ii],zd[jj],Lcurrent);
+				if (b[0] == 0 && b[1] == 0) return false;
 			case REG:
 			case REGCOS:
 			case LSM:
@@ -160,16 +166,6 @@ public class zModel implements IF_LSM {
 			case REGCOSB:
 				c = coef(yd,zd[ii],zd[jj],Lcurrent);
 				if (c[0] == 0 && c[1] == 0) return false;
-				break;
-		}
-		
-		switch (crit) {
-			case BIAS_REG:
-			case REG_AB:	
-			case BIASCOEF:
-			case BIAS:	
-				b = coef(yd,zd[ii],zd[jj],Lcurrent);
-				if (b[0] == 0 && b[1] == 0) return false;
 				break;
 		}
 		
@@ -217,9 +213,7 @@ public class zModel implements IF_LSM {
 //----------------------------------------------------------------
 	public void generator(boolean printIteration, int Lmax) {
 		gen0();
-//		printModel();
-		do { 
-		} while (genPopulation()>0 && Lcurrent < Lmax);
+		do {} while (genPopulation()>0 && Lcurrent < Lmax);
 	}
 
 	public void gen0() {
@@ -258,7 +252,7 @@ public class zModel implements IF_LSM {
 					for (int j=0; j < m1; j++) {
 						double anew = a1 * old[j][k1] + a2 * old[j][k2];
 						if (CG.isRoundCoefZ) anew = roundAvoid(anew, CG.round_z);
-						a[j][kz] = anew; // recalc z, zd [kz]
+						if (CG.isRoundLastCoefZ) anew = roundLast(anew, CG.r_z);					a[j][kz] = anew; // recalc z, zd [kz]
 						z [kz].addV(anew, z [j], j);
 						zd[kz].addV(anew, zd[j], j);
 					}
@@ -274,6 +268,7 @@ public class zModel implements IF_LSM {
 						double anew = a1 * old[j][k1] + a2 * old[j][k2];
 						a[j][kz] = anew;
 						if (CG.isRoundCoefZ) anew = roundAvoid(anew, CG.round_z);
+						if (CG.isRoundLastCoefZ) anew = roundAvoid(anew, CG.r_z);
 						z [kz].addV(anew, z [j], j);  // recalc z, zd [kz]
 					}
 					z[kz].valuation(); 
@@ -297,51 +292,6 @@ public class zModel implements IF_LSM {
 		System.out.println("\n");
 	}
 	
-	public void printZ() {
-		System.out.println("\nПараметры обучающей выборки");
-		if (y != null) y.printVector();
-		else System.out.println("Отсутствует y");
-		for (int i=0; i < mxz; i++) {
-			if (z[i] != null) z[i].printVector();
-			else System.out.println("Отсутствует фактор " + i);
-		}
-		if (crit != GMDH.LSM) {
-			System.out.println("Параметры проверяющей выборки");
-			if (yd != null) yd.printVector();
-			else System.out.println("Отсутствует y");
-			for (int i=0; i < mxz; i++) {
-				if (zd[i] != null) zd[i].printVector();
-				else System.out.println("Отсутствует фактор " + i);
-			}
-			System.out.println("Параметры экзаменационной выборки");
-			if (yc != null) yc.printVector();
-			else System.out.println("Отсутствует y");
-			for (int i=0; i < m1; i++) {
-				if (zc[i] != null) zc[i].printVector();
-				else System.out.println("Отсутствует фактор " + i);
-			}
-		}
-	}
-	
-	public void printModel() {
-		System.out.println("\nИтерация " + Lcurrent + " max СR[" + iCRmax + "]=" + valCRmax);
-		for (int l=m1; l<mxz; l++) {
-			System.out.println("Модель " + (l-m1) + " с уровня " + L[l-m1] + ": критерий " + cr[l-m1]);
-			if (yc != null) zc[l] = new MathVector(yc.n, l);
-			for (int j=0; j<m1; j++) {
-				System.out.print("a[" + j + "]=" + a[j][l] + " ");
-				if (yc != null) zc[l].addV(a[j][l], zc[j], j);
-			}
-			if (yc != null) {
-				zc[l].valuation();
-				double CRC = Math.sqrt(detCR(yc,zc[l],1))/yc.norma;
-				System.out.println("Критерий на экзаменационной выборке: " + CRC);
-			}
-			System.out.print("Модель образована из ");
-			System.out.println("z{"+ij_z[0][l-m1] + "}=" + aij[0][l-m1]+" и " +
-					"z{"+ij_z[1][l-m1] + "}= " + aij[1][l-m1] + "\n");
-		}
-	}
 	
 	public double[][] matrixR(boolean corr) {
 		double[][] R = new double[m1][m1];
@@ -372,43 +322,6 @@ public class zModel implements IF_LSM {
 		return U;
 	}
 	
-	public void printMatrix() {
-		printMatrixR(true);
-		printMatrixR(false);
-		printMatrixU();
-	}
-	
-	public void printMatrixR(boolean corr) {
-		double[][] R = matrixR(corr);
-		String sf;
-		if (corr) {
-			System.out.println("\nКорреляционная матрица");
-			sf = " %+1.2f";
-		} else {
-			System.out.println("\nКовариационная матрица");
-			sf = " %+8e";
-		}
-		for ( int i=0; i < m1; i++) {
-			for ( int j=0; j < m1; j++) {
-				if(i<j) System.out.printf(sf,R[i][j]); 
-				else    System.out.printf(sf,R[j][i]);
-			}
-			System.out.println("\n");
-		}
-	}
-	
-	public void printMatrixU() {
-		double[][] U = matrixU();
-		String sf = " %+05.1f";
-		System.out.println("\nУглы между векторами");
-		for ( int i=0; i < m1; i++) {
-			for ( int j=0; j < m1; j++) {
-				if(i<j) System.out.printf(sf,U[i][j]); 
-				else    System.out.printf(sf,U[j][i]);
-			}
-			System.out.println("\n");
-		}
-	}
 	
 	public void createData(int n, int nd, int nc) {
 		if (n>0) {
@@ -496,13 +409,101 @@ public class zModel implements IF_LSM {
 	public static class CG {
 		static final double EPS = 1e-20;
 // round coefficient
-		static boolean isRoundCoef2 = false;
-		static boolean isRoundCoefZ = false;
-		static int round_a2 = 2;             // scale a2
-		static int round_z  = 2;             // scale z
-
-		static double muy = 0.5; // for BIAS_REG
+		static boolean isRoundCoef2 = true;
+		static boolean isRoundCoefZ = true;
+		static int round_a2 = 1;             // scale a2
+		static int round_z  = 1;             // scale z
+// round method 2
+		static boolean isRoundLastCoef2 = false;
+		static boolean isRoundLastCoefZ = false;
+		static int r_a2 = 4;             // drop last digits
+		static int r_z  = 4;             // drop last digits
 		
+		static double muy = 0.5; // for BIAS_REG
+	}
+//==========================================================	
+	public void printMatrix() {
+		printMatrixR(true); // ковариационная матрица
+		printMatrixR(false); // корреляционная матрица
+		printMatrixU(); // углы между весторами
 	}
 	
+	public void printMatrixR(boolean corr) {
+		double[][] R = matrixR(corr);
+		String sf;
+		if (corr) {
+			System.out.println("\nКорреляционная матрица");
+			sf = " %+1.2f";
+		} else {
+			System.out.println("\nКовариационная матрица");
+			sf = " %+8e";
+		}
+		for ( int i=0; i < m1; i++) {
+			for ( int j=0; j < m1; j++) {
+				if(i<j) System.out.printf(sf,R[i][j]); 
+				else    System.out.printf(sf,R[j][i]);
+			}
+			System.out.println("\n");
+		}
+	}
+	
+	public void printMatrixU() {
+		double[][] U = matrixU();
+		String sf = " %+05.1f";
+		System.out.println("\nУглы между векторами");
+		for ( int i=0; i < m1; i++) {
+			for ( int j=0; j < m1; j++) {
+				if(i<j) System.out.printf(sf,U[i][j]); 
+				else    System.out.printf(sf,U[j][i]);
+			}
+			System.out.println("\n");
+		}
+	}
+
+	public void printZ() {
+		System.out.println("\nПараметры обучающей выборки");
+		if (y != null) y.printVector();
+		else System.out.println("Отсутствует y");
+		for (int i=0; i < mxz; i++) {
+			if (z[i] != null) z[i].printVector();
+			else System.out.println("Отсутствует фактор " + i);
+		}
+		if (crit != GMDH.LSM) {
+			System.out.println("Параметры проверяющей выборки");
+			if (yd != null) yd.printVector();
+			else System.out.println("Отсутствует y");
+			for (int i=0; i < mxz; i++) {
+				if (zd[i] != null) zd[i].printVector();
+				else System.out.println("Отсутствует фактор " + i);
+			}
+			System.out.println("Параметры экзаменационной выборки");
+			if (yc != null) yc.printVector();
+			else System.out.println("Отсутствует y");
+			for (int i=0; i < m1; i++) {
+				if (zc[i] != null) zc[i].printVector();
+				else System.out.println("Отсутствует фактор " + i);
+			}
+		}
+	}
+	
+	public void printModel() {
+		System.out.println("\nИтерация " + Lcurrent + " max СR[" + iCRmax + "]=" + valCRmax);
+		for (int l=m1; l<mxz; l++) {
+			System.out.println("Модель " + (l-m1) + " с уровня " + L[l-m1] + ": критерий " + cr[l-m1]);
+			if (yc != null) zc[l] = new MathVector(yc.n, l);
+			for (int j=0; j<m1; j++) {
+				System.out.print("a[" + j + "]=" + a[j][l] + " ");
+				if (yc != null) zc[l].addV(a[j][l], zc[j], j);
+			}
+			if (yc != null) {
+				zc[l].valuation();
+				double CRC = Math.sqrt(detCR(yc,zc[l],1))/yc.norma;
+				System.out.println("Критерий на экзаменационной выборке: " + CRC);
+			}
+			System.out.print("Модель образована из ");
+			System.out.println("z{"+ij_z[0][l-m1] + "}=" + aij[0][l-m1]+" и " +
+					"z{"+ij_z[1][l-m1] + "}= " + aij[1][l-m1] + "\n");
+		}
+	}
+
 }

@@ -175,4 +175,11 @@ public interface IF_LSM {
 	    double scale = Math.pow(10, places);
 	    return  Math.floor(value * scale +.5)/scale;
 	}
+	
+	default double roundLast(double value, int r) {
+		int lu = -((int) Math.log10(Math.ulp(value)) + r);
+	    double scale = Math.pow(10, lu);
+	    return Math.round(value * scale) / scale;
+	}	
+
 }
