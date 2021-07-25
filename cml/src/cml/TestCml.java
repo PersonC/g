@@ -65,7 +65,9 @@ public class TestCml  implements IF_LSM  {
 						vector.iv=alg; }
 					break;
 				}
-				vector.valuation();
+				try { vector.valuation(); }catch (Exception e) {
+					// TODO: handle exception
+				}
 			}
 	
 	//=========================================================================
@@ -83,7 +85,9 @@ public class TestCml  implements IF_LSM  {
 				test(j, 3, 0, z.z[j]);
 				for (int i=0; i<z.y.n; i++) z.y.v[i]+=z.z[j].v[i]*(double)j;
 			}
-			z.y.valuation();
+			try { z.y.valuation(); }catch (Exception e) {
+				// TODO: handle exception
+			}
 		}
 		
 		public void utilityTest(int n, int nd, int m) {
@@ -101,7 +105,9 @@ public class TestCml  implements IF_LSM  {
 				test(j, 3, n, z.zd[j]);
 				for (int i=0; i<z.yd.n; i++) z.yd.v[i]+=z.zd[j].v[i]*(double)j;
 			}
-			z.yd.valuation();
+			try { z.yd.valuation(); } catch (Exception e) {
+				// TODO: handle exception
+			}
 		}
 		
 		public void utilityTest(int n, int nd, int nc, int m) {
@@ -119,7 +125,9 @@ public class TestCml  implements IF_LSM  {
 				test(j, 3, n+nd, z.zc[j]);
 				for (int i=0; i<z.yc.n; i++) z.yc.v[i]+=z.zc[j].v[i]*(double)j;
 			}
-			z.yc.valuation();
+			try { z.yc.valuation(); } catch (Exception e) {
+				// TODO: handle exception
+			}
 		}
 
 }

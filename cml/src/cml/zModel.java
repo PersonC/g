@@ -39,55 +39,42 @@ public class zModel implements IF_LSM {
 		this.aij  =  new double[2][this.f];
 	}
 	
-//===========================================================
-	public void setScale(boolean sy, boolean[] sx) {
-		if (sy) {
-			double scale = whatScale(0);
-			y.makeScale(scale);
-			if (yd != null) yd.makeScale(scale);
-			if (yc != null) yc.makeScale(scale);
+//= affine transformation==================================================
+	public void setScale() {
+		y.makeScale();
+		if (yd != null) yd.makeScale();
+		if (yc != null) yc.makeScale();
+	}
+	public void setScale(int vi) throws Exception {
+		if (vi < 0 || vi > m1) throw new Exception("Index x[i] is wrong: " + vi + "not in [1," + m1); 
+		z[vi].makeScale();
+		if (zd[vi] != null) zd[vi].makeScale();
+		if (zc[vi] != null) zc[vi].makeScale();
+	}
+	
+	public void revertScale() {
+		double s0 = y.getScale(), d0 = y.getParallax();
+		double s[] = new double[m1], d[] = new double[m1];
+		for (int i=1; i<m1; i++) {
+			s[i] = z[i].getScale(); d[i] = z[i].getParallax();
 		}
-		if (sx == null) return;
-		for (int l=0; l<sx.length; l++) {
-			if (sx[l]) {
-				double scale = whatScale(l+1);
-				z[l+1].makeScale(scale);
-				if (zd[l+1] != null) zd[l+1].makeScale(scale);
-				if (zc[l+1] != null) zc[l+1].makeScale(scale);
+		for (int k=0; k<mxz; k++) {
+			double a0 = a[0][k];
+			for (int j=1; j<m1; j++) {
+				a0 -= a[j][k] * d[j];
+			}
+			a[0][k] = s0 * (a0 + d0);
+			for (int j=1; j<m1; j++) {
+				a[j][k] = a[j][k] * s0 / s[j];
 			}
 		}
 	}
 	
-	public void revertScaleY() {
-		if (y.scale == 1) return; // coefficient [m1][mxz]
-		for (int i=0; i<m1; i++) {
-			for (int j=0; j<mxz; j++) {	a[i][j] *= y.scale;	}
-		}
+	public void normaYX() {
+		y.setScale(y.norma);
 	}
 	
-	public double whatScale(int l) {
-		double nful = 0, a = 0;
-		if (l == 0) { // y
-			nful = y.n;
-			a = y.vAverage * (double) y.n;
-			if (yd != null) {
-				nful += yd.n;
-				a += yd.vAverage * (double) yd.n;
-			}
-//			nful += yc.n;
-//			a += yc.vAverage * (double) yc.n;
-		} else { // z[l]
-			nful = z[l].n;
-			a = z[l].vAverage * (double) z[l].n;
-			if (zd[l] != null) {
-				nful += zd[l].n;
-				a += zd[l].vAverage * (double) zd[l].n;
-			}
-//			nful += yc.n;
-//			a += zc[l].vAverage * (double) zc[l].n;
-		}
-		return(a / nful);
-	}
+//===========================================================	
 	
 	public void set_coef0() {
 		for (int k=0; k<f; k++) {
@@ -252,11 +239,14 @@ public class zModel implements IF_LSM {
 					for (int j=0; j < m1; j++) {
 						double anew = a1 * old[j][k1] + a2 * old[j][k2];
 						if (CG.isRoundCoefZ) anew = roundAvoid(anew, CG.round_z);
-						if (CG.isRoundLastCoefZ) anew = roundLast(anew, CG.r_z);					a[j][kz] = anew; // recalc z, zd [kz]
+						if (CG.isRoundLastCoefZ) anew = roundLast(anew, CG.r_z);					
+						a[j][kz] = anew; // recalc z, zd [kz]
 						z [kz].addV(anew, z [j], j);
 						zd[kz].addV(anew, zd[j], j);
 					}
-					z[kz].valuation(); 	zd[kz].valuation();
+					try {z[kz].valuation();	zd[kz].valuation();} catch (Exception e) {
+						// TODO: handle exception
+					};
 				}
 			}
 		} else {
@@ -271,7 +261,10 @@ public class zModel implements IF_LSM {
 						if (CG.isRoundLastCoefZ) anew = roundAvoid(anew, CG.r_z);
 						z [kz].addV(anew, z [j], j);  // recalc z, zd [kz]
 					}
-					z[kz].valuation(); 
+					try {
+					z[kz].valuation(); }catch (Exception e) {
+						// TODO: handle exception
+					}
 				}
 			}
 		}
@@ -392,9 +385,15 @@ public class zModel implements IF_LSM {
 				}
 			} else { break; }
 		}
-		y.valuation(); yd.valuation(); yc.valuation();
+		try {
+		y.valuation(); yd.valuation(); yc.valuation(); } catch (Exception e) {
+			// TODO: handle exception
+		}
 		for (int j=1; j<m1; j++) {
-			z[j].valuation(); zd[j].valuation(); zc[j].valuation();
+			try {
+			z[j].valuation(); zd[j].valuation(); zc[j].valuation(); }catch (Exception e) {
+				// TODO: handle exception
+			}
 		}
 		return in.nameFile + " " + isfr;
 	}
@@ -496,7 +495,10 @@ public class zModel implements IF_LSM {
 				if (yc != null) zc[l].addV(a[j][l], zc[j], j);
 			}
 			if (yc != null) {
-				zc[l].valuation();
+				try {
+				zc[l].valuation(); } catch (Exception e) {
+					// TODO: handle exception
+				}
 				double CRC = Math.sqrt(detCR(yc,zc[l],1))/yc.norma;
 				System.out.println("Критерий на экзаменационной выборке: " + CRC);
 			}

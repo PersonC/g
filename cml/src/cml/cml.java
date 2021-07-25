@@ -29,13 +29,13 @@ public class cml implements IF_LSM {
 			GMDH t7 = GMDH.BIAS; 
 			GMDH t8 = GMDH.BIASCOEF;
 
-			zModel ft = new zModel(mt,ff,"Обучающая А",t7);
-			new TestCml(ft);
-			ft.setScale(false, null);
-			new putTable(ft);
-//			ft.printMatrix();
+			zModel ft = new zModel(mt,ff,"Тестовая модель",t7);
+			new TestCml(ft); // создание тестовых данных на все выборки
+//			ft.setScale(false, null);
+			new putTable(ft); // вывод данных в графическое окно
+//			ft.printMatrix(); // вывод коррелляционных матриц
 			ft.generator(printIteration,Lmaxt);
-			ft.revertScaleY();
+//			ft.revertScaleY();
 			new putTable(ft,0);
 			ft.bestModel();
 	        ft.printModel();
