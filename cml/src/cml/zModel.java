@@ -107,6 +107,19 @@ public class zModel implements IF_LSM {
 			return 1;
 		} else return 0;
 	}
+
+	public int insertCR(double a1, int i, double crnew) {
+		if (crnew < valCRmax) {
+			cr     [iCRmax] = crnew;
+			aij [0][iCRmax] = a1;
+			ij_z[0][iCRmax] = i; 
+			aij [1][iCRmax] = 0;
+			ij_z[1][iCRmax] = -2; 
+			L      [iCRmax] = Lcurrent;
+			detMinCr1();
+			return 1;
+		} else return 0;
+	}
 	
 	public void detMinCr1() {
 		double maxCR = cr[0];
@@ -206,7 +219,7 @@ public class zModel implements IF_LSM {
 	public void gen0() {
 		Lcurrent++;
 		for (int j1 = 0; j1 < m1; j1++) {
-			if (model2(j1, j1)) insertCR(a1, j1, 0.0, -2, CRvalue); 
+			if (model2(j1, j1)) insertCR(a1, j1, CRvalue); 
 		}
 		set_coef0();
 	}

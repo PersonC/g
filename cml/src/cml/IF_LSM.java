@@ -68,6 +68,7 @@ public interface IF_LSM {
 	}
 	
 	default double detCR(MathVector y, MathVector x1, MathVector x2, double c1, double c2) {
+		// (y - ym)**2
 		double s2 = 0.0, s;
 		for ( int i = 0; i < y.n; i++) {
 			s = (y.v[i] - c1 * x1.v[i] - c2 * x2.v[i]); s2 += s*s;
@@ -87,7 +88,7 @@ public interface IF_LSM {
 	default double detCR(MathVector z1, MathVector z1d, 
 			             MathVector z2, MathVector z2d, 
 			             double a1, double a2, double b1, double b2) {
-		// критерий смещенности (y(mA)-y(mB))**2
+		// критерий смещенности (ymA(A+B)-ymB(A+B))**2
 		double sxy, s1 = a1-b1, s2 = a2-b2, s11, s22;
 		sxy = xy(z1,z2) + xy(z1d,z2d);
 		s11 = s1 * s1; s22 = s2 * s2;
@@ -95,7 +96,7 @@ public interface IF_LSM {
 	}
 	
 	default double detCR(MathVector z, MathVector zd, double a, double b) {
-		// критерий смещенности (y(mA)-y(mB))**2
+		// критерий смещенности (ymA(A+B)-ymB(A+B))**2
 		double s = a-b;
 		return s * s * (z.sumv2 + zd.sumv2);
 	}

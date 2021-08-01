@@ -39,8 +39,9 @@ public class cml implements IF_LSM {
 			new putTable(ft,0);
 			ft.bestModel();
 	        ft.printModel();
-	        Estimate es = new Estimate();
-	        es.calcEps2(ft);
+//	        Estimate es = new Estimate();
+//	        es.calcEps2(ft);
+	        new Estimate().calcEps2(ft);
 		} else {
 			int m = 5, f = 2, Lmax = 19;
 			zModel fa = new zModel(m,f,"Обучающая А",GMDH.BIASCOEF);

@@ -6,7 +6,7 @@ public class Estimate implements IF_LSM {
 	public void calcEps2(zModel z) {
 		double[] RSS = new double[z.f], TSS = new double[z.f],
 				 R2  = new double[z.f], DWS = new double[z.f];
-		double ymi, yt, deltae, ye, ymi_1;
+		double ymi, yt, ye, ymi_1;
 		int N1 = z.y.n;
 		int N2 = (z.yd == null) ? 0 : z.yd.n;
 		int N3 = (z.yc == null) ? 0 : z.yc.n;
@@ -56,10 +56,10 @@ public class Estimate implements IF_LSM {
 			sR2  = sR2  + l + " " + R2[l]  + " ";
 			sDW  = sDW  + l + " " + DWS[l] + " ";
 		}
-		System.out.println(sRSS);
-		System.out.println(sTSS);
-		System.out.println(sR2);
-		System.out.println(sDW);
+		System.out.println("RSS:" + sRSS);
+		System.out.println("TSS:" + sTSS);
+		System.out.println("R2:" + sR2);
+		System.out.println("DW:" + sDW);
 	}
 
 }
