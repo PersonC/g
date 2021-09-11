@@ -6,9 +6,9 @@ import java.util.Calendar;
 
 public class a1 {
 
+	
 	public static void main(String[] args) {
 		
-
 		System.out.println("==Constructor=====");
 		for(Constructor cons: ArrayList.class.getDeclaredConstructors()) {
 			System.out.println(cons);
