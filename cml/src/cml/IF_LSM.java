@@ -2,20 +2,30 @@ package cml;
 
 public interface IF_LSM {
 	public static final double EPS = 1e-20;
-	public static enum GMDH { LSM,
-		REG,REGB,REGCOS,REGCOSB,
-		BIAS,BIASCOEF,REG_AB,BIAS_REG	};
-	public static String[] nameGMDH = {
-			"Метод наименьших квадратов",
-			"Критерий регулярности А",
-			"Критерий регулярности B",
-			"Критерий регулярности на основе угла между векторами А",
-			"Критерий регулярности на основе угла между векторами В",
-			"Критерий несмещенности ||ym(A)-ym(B)||",
-			"Критерий несмещенности 2",
-			"Критерий регулярности ||y-ym(A)||(B) - ||y-ym(B)||(A)",
-			"Комбинированный критерий"
-	}; 	
+	public static enum GMDH { 
+		LSM("Метод наименьших квадратов"),
+		REG("Критерий регулярности А"),
+		REGB("Критерий регулярности B"),
+		REGCOS("Критерий регулярности на основе угла между векторами А"),
+		REGCOSB("Критерий регулярности на основе угла между векторами В"),
+		BIAS("Критерий несмещенности ||ym(A)-ym(B)||"),
+		BIASCOEF("Критерий несмещенности 2"),
+		REG_AB("Критерий регулярности ||y-ym(A)||(B) - ||y-ym(B)||(A)"),
+		BIAS_REG("Комбинированный критерий");
+
+		public String model;
+
+		GMDH(String model) { this.model = model; }
+		GMDH() { this.model = "Model " + this.ordinal(); }
+		public static String getGMDH(int i) {
+			for(GMDH g: GMDH.values()) { if (g.ordinal() == i) return g.name(); }
+			return null;
+		}
+		public static String getModel(int i) {
+			for(GMDH g: GMDH.values()) { if (g.ordinal() == i) return g.model; }
+			return "Unknown";
+		}
+	};
 	
 	default double xy(MathVector y, MathVector x) {
 		if (y == null || x == null) return 0.0;
@@ -167,20 +177,18 @@ public interface IF_LSM {
 //		return s2;
 //	}
 	
-	default double roundAvoid(double value, int places) {
-	    double scale = Math.pow(10, places);
-	    return Math.round(value * scale) / scale;
-	}	
-	
 	default double roundHalf(double value, int places) {
+		// округлить до заданного количества цифр после запятой
 	    double scale = Math.pow(10, places);
 	    return  Math.floor(value * scale +.5)/scale;
 	}
 	
 	default double roundLast(double value, int r) {
 		int lu = -((int) Math.log10(Math.ulp(value)) + r);
+		int lv = (int) Math.floor( Math.log10(Math.abs(value)));
+		if (lu<-lv) lu=-lv;
 	    double scale = Math.pow(10, lu);
 	    return Math.round(value * scale) / scale;
 	}	
-
+	
 }

@@ -1,7 +1,16 @@
 package cml;
 import javax.swing.*;
+import java.awt.*;
 
-public class putTable {
+public class putTable extends JFrame{
+	JFrame frame;
+	
+	
+	public putTable() {
+		this.frame = (JFrame) getFrames()[0];
+		
+		
+	}
 	
 	public putTable(zModel z) {
 		int ncol = z.m + 1;
@@ -38,7 +47,8 @@ public class putTable {
 		}
 		
 		JTable table = new JTable(data,headings);
-		JFrame frame = new JFrame("Sample data table");
+		JFrame frame = (JFrame) getFrames()[0];
+//		JFrame frame = new JFrame("Sample data table");
 		frame.add(new JScrollPane(table));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(600,600);

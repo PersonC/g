@@ -134,10 +134,12 @@ public class zModel implements IF_LSM {
 		double[] lsm;
 		if (Lc <=1 ) lsm = coef2(y,x1); else lsm = coef2(y,x1,x2);
 		if (CG.isRoundCoef2) {
-			lsm[0] = roundAvoid(lsm[0],CG.round_a2);
-			lsm[1] = roundAvoid(lsm[1],CG.round_a2);
+			// округлить до заданного количества цифр после запятой
+			lsm[0] = roundHalf(lsm[0],CG.round_a2);
+			lsm[1] = roundHalf(lsm[1],CG.round_a2);
 		}
 		if (CG.isRoundLastCoef2) {
+			// отбросить заданное количество цифр сзади
 			lsm[0] = roundLast(lsm[0],CG.r_a2);
 			lsm[1] = roundLast(lsm[1],CG.r_a2);
 		}
@@ -211,7 +213,7 @@ public class zModel implements IF_LSM {
 		return true;
 	}
 //----------------------------------------------------------------
-	public void generator(boolean printIteration, int Lmax) {
+	public void generator(int Lmax) {
 		gen0();
 		do {} while (genPopulation()>0 && Lcurrent < Lmax);
 	}
@@ -251,14 +253,14 @@ public class zModel implements IF_LSM {
 					double a1 = aij[0][k], a2 = aij[1][k];
 					for (int j=0; j < m1; j++) {
 						double anew = a1 * old[j][k1] + a2 * old[j][k2];
-						if (CG.isRoundCoefZ) anew = roundAvoid(anew, CG.round_z);
+						if (CG.isRoundCoefZ) anew = roundHalf(anew, CG.round_z);
 						if (CG.isRoundLastCoefZ) anew = roundLast(anew, CG.r_z);					
 						a[j][kz] = anew; // recalc z, zd [kz]
 						z [kz].addV(anew, z [j], j);
 						zd[kz].addV(anew, zd[j], j);
 					}
 					try {z[kz].valuation();	zd[kz].valuation();} catch (Exception e) {
-						// TODO: handle exception
+						System.out.println(e.toString());
 					};
 				}
 			}
@@ -270,8 +272,8 @@ public class zModel implements IF_LSM {
 					for (int j=0; j < m1; j++) {
 						double anew = a1 * old[j][k1] + a2 * old[j][k2];
 						a[j][kz] = anew;
-						if (CG.isRoundCoefZ) anew = roundAvoid(anew, CG.round_z);
-						if (CG.isRoundLastCoefZ) anew = roundAvoid(anew, CG.r_z);
+						if (CG.isRoundCoefZ) anew = roundHalf(anew, CG.round_z);
+						if (CG.isRoundLastCoefZ) anew = roundHalf(anew, CG.r_z);
 						z [kz].addV(anew, z [j], j);  // recalc z, zd [kz]
 					}
 					try {
@@ -285,7 +287,7 @@ public class zModel implements IF_LSM {
 //----------------------------------------------------------------
 	public void bestModel() {
 		System.out.println("\nModel " + nameModel + " Критерий " + crit + ": " + 
-                nameGMDH[ crit.ordinal()] + "\nЛучшая модель: ");
+                GMDH.getModel(crit.ordinal()) + "\nЛучшая модель: ");
 		double c = cr[0];
 		int ll = 0;
 		for (int m=1; m < f; m++) {
@@ -420,16 +422,16 @@ public class zModel implements IF_LSM {
 	
 	public static class CG {
 		static final double EPS = 1e-20;
+		// round method 2
+				static boolean isRoundLastCoef2 = false;
+				static boolean isRoundLastCoefZ = false;
+				static int r_a2 = 8;             // drop last digits
+				static int r_z  = 2;             // drop last digits
 // round coefficient
-		static boolean isRoundCoef2 = true;
-		static boolean isRoundCoefZ = true;
+		static boolean isRoundCoef2 = true && !isRoundLastCoef2;
+		static boolean isRoundCoefZ = false && !isRoundLastCoefZ;
 		static int round_a2 = 1;             // scale a2
-		static int round_z  = 1;             // scale z
-// round method 2
-		static boolean isRoundLastCoef2 = false;
-		static boolean isRoundLastCoefZ = false;
-		static int r_a2 = 4;             // drop last digits
-		static int r_z  = 4;             // drop last digits
+		static int round_z  = 8;             // scale z
 		
 		static double muy = 0.5; // for BIAS_REG
 	}

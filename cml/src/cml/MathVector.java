@@ -14,6 +14,26 @@ public class MathVector {
 		MEAN,
 		AFFINE
 	};
+	private double[] vOrigin;
+//>>>>>... constructor	
+
+	public MathVector(int n, int iv) {
+		this.n  = n;
+		this.v  = new double[n];
+		this.iv = iv;
+	}
+	
+	public MathVector(MathVector x1, MathVector x2) {
+		this.n = x1.n + x2.n;
+		this.iv = x1.iv + x2.iv * 1000;
+		this.v = new double[n];
+		for (int i=0; i<x1.n; i++) v[i] = x1.v[i];
+		for (int i=x1.n, j=0; j<x2.n; i++, j++) v[i] = x2.v[j];
+	}
+	
+// construtor ...<<<<<<<<<<<<
+	
+//-----> scaling 
 	
 	public void setScale (double scale) {
 		if (Math.abs(scale) > minValue) this.scale = scale;
@@ -42,24 +62,21 @@ public class MathVector {
 	}
 	
 	public void makeScale() {
-		for (int i=0; i<n; i++) v[i] = v[i] / scale - parallax ;
+		this.vOrigin  = new double[n];
+		for (int i=0; i<n; i++) {
+			vOrigin[i] = v[i];
+			v[i] = v[i] / scale - parallax;
+		}
+		try {valuation();} catch (Exception e) {}
+	}
+	
+	public void undoScale() {
+		if (vOrigin == null) return;
+		for (int i=0; i<n; i++) v[i] = vOrigin[i];
 		try {valuation();} catch (Exception e) {}
 	}
 
-	public MathVector(int n, int iv) {
-		this.n  = n;
-		this.v  = new double[n];
-		this.iv = iv;
-	}
-	
-	public MathVector(MathVector x1, MathVector x2) {
-		this.n = x1.n + x2.n;
-		this.iv = x1.iv + x2.iv * 1000;
-		this.v = new double[n];
-		for (int i=0; i<x1.n; i++) v[i] = x1.v[i];
-		for (int i=x1.n, j=0; j<x2.n; i++, j++) v[i] = x2.v[j];
-	}
-
+//  end scaling <------	
 	public void oneVector( ) {
 		for (int i = 0; i < n; i++) { v[i] = 1; }
 		try {valuation();} catch (Exception e) {}
